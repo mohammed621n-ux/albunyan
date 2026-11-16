@@ -109,6 +109,10 @@
   .rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
   .rules div { background: #0f1d33; border-radius: 12px; padding: 10px 6px; font-size: 13px; font-weight: 800; color: #cbd5e1; line-height: 1.6; }
   .rules b { display: block; font-size: 24px; }
+  .how { display: grid; gap: 8px; width: 100%; text-align: start; }
+  .how div { background: #0f1d33; border-radius: 12px; padding: 9px 12px; font-size: 14.5px; line-height: 1.8; display: flex; gap: 10px; align-items: flex-start; color: #dbe6f7; }
+  .how b.n { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--orange); display: grid; place-items: center; color: #fff; }
+  .lose { background: #3b0d0d; border: 2px solid var(--bad); border-radius: 12px; padding: 9px 12px; font-size: 14.5px; line-height: 1.8; width: 100%; text-align: start; }
   .law { background: #052e16; border: 2px solid #166534; border-radius: 14px; padding: 10px 12px; color: #d1fae5; line-height: 1.85; font-size: 14.5px; text-align: start; width: 100%; }
   .law b { color: var(--gold); }
   .end { text-align: center; align-items: center; }
@@ -174,17 +178,17 @@
   const m = (t) => `<span class="m">${t}</span>`;
   const R = [
     { q: `رأس منحنى ${m(`<i>f</i>(${X}) = 3|2${X} − 8${K}| + (${K}${s2} + 2)`)} هو ${m(`(8 , ${M})`)}، حيث ${m(`${K} &gt; 0`)}. أوجد ${m(M)}.`,
-      L: [`2${X} − 8${K} = 0`, `${X} = 4${K}`, `4${K} = 8 ⇒ ${K} = 2`, `${M} = ${K}${s2} = 4`], bad: 4,
-      why: [['أخطأ في القسمة: 8 ÷ 2 = 3', 0], ['نسي العدد 2 الموجود مع مربع k خارج المطلق: الصواب m = 4 + 2 = 6', 1], ['الرأس عند أكبر قيمة للاقتران', 0]],
-      fix: m(`${M} = ${K}${s2} + 2 = 4 + 2 = 6`) },
+      L: [`${X} = 8${K}`, `8${K} = 8 ⇒ ${K} = 1`, `${M} = ${K}${s2} + 2 = 3`], bad: 1,
+      why: [['كتب x = العدد داخل المطلق مباشرة، وهذا يصح فقط إذا كان معامل x يساوي 1. هنا: 2x − 8k = 0 ⇒ x = 4k', 1], ['كان يجب أن يضرب m في 3', 0], ['الحد الثابت خارج المطلق يجب أن يكون k فقط', 0]],
+      fix: m(`2${X} − 8${K} = 0 ⇒ ${X} = 4${K} ⇒ ${K} = 2 ⇒ ${M} = 4 + 2 = 6`) },
     { q: `رأس منحنى ${m(`<i>f</i>(${X}) = 2|${X} − 3${K}| + (${K}${s2} − 1)`)} هو ${m(`(6 , ${M})`)}، حيث ${m(`${K} &gt; 0`)}. أوجد ${m(M)}.`,
       L: [`${X} − 3${K} = 0 ⇒ ${X} = 3${K}`, `3${K} = 6 ⇒ ${K} = 2`, `${M} = 2(${K}${s2} − 1) = 6`], bad: 3,
       why: [['كان يجب أن تكون k = 3', 0], ['نسي أن يربّع k', 0], ['ضرب في العدد 2 قبل المطلق، وهذا العدد يغيّر اتساع الحرف V فقط ولا يغيّر الرأس', 1]],
       fix: m(`${M} = ${K}${s2} − 1 = 4 − 1 = 3`) },
-    { q: `رأس منحنى ${m(`<i>f</i>(${X}) = |4${X} − 12${K}| + (${K}${s2} + 5)`)} هو ${m(`(6 , ${M})`)}، حيث ${m(`${K} &gt; 0`)}. أوجد ${m(M)}.`,
-      L: [`4${X} = 12${K}`, `${X} = 4${K}`, `4${K} = 6 ⇒ ${K} = 1.5`, `${M} = 2.25 + 5 = 7.25`], bad: 2,
-      why: [['أخطأ في القسمة: 12 ÷ 4 = 3، فالصواب x = 3k', 1], ['السطر الأول خطأ: داخل المطلق لا يساوي صفرًا', 0], ['كان يجب أن يجمع 12 و 4', 0]],
-      fix: m(`${X} = 3${K} ⇒ 3${K} = 6 ⇒ ${K} = 2 ⇒ ${M} = 4 + 5 = 9`) },
+    { q: `رأس منحنى ${m(`<i>f</i>(${X}) = |4${X} − 12${K}| + (${K}${s2} + 5)`)} هو ${m(`(9 , ${M})`)}، حيث ${m(`${K} &gt; 0`)}. أوجد ${m(M)}.`,
+      L: [`4${X} − 12${K} = 0 ⇒ ${X} = 3${K}`, `3${K} = 9 ⇒ ${K} = 3`, `${M} = ${K}${s2} + 5 = 2 × 3 + 5 = 11`], bad: 3,
+      why: [['ظن أن التربيع يعني الضرب في 2. والصواب: 3² = 3 × 3 = 9', 1], ['الصواب x = 4k', 0], ['يجب طرح 5 لا جمعها', 0]],
+      fix: m(`${M} = 3${s2} + 5 = 9 + 5 = 14`) },
     { q: `رأس منحنى ${m(`<i>f</i>(${X}) = 5|2${X} − 6${K}| + (${K}${s2} + 3)`)} هو ${m(`(9 , ${M})`)}، حيث ${m(`${K} &gt; 0`)}. أوجد ${m(M)}.`,
       L: [`2${X} − 6${K} = 0 ⇒ ${X} = 3${K}`, `3${K} = 9 ⇒ ${K} = 3`, `${M} = 3${s2} + 3 = 12`], bad: 0,
       why: [['يجب ضرب m في 5', 0], ['كل الخطوات صحيحة: داخل المطلق = 0، ثم k = 3، ثم m = 9 + 3 = 12', 1], ['k = 9 لا 3', 0]],
@@ -245,8 +249,14 @@
   const intro = () => {
     $('#game').innerHTML = `<div class="intro">
       <h1>ركلات <em>الترجيح</em> ⚽</h1>
-      <p>المباراة: <b>أنت ضد الأخطاء</b>. في كل ركلة يظهر حل طالب على شاشة الإعادة. اكشف السطر الخاطئ، أو احكم بأن الحل صحيح كله، قبل انتهاء ${SHOT} ثانية.</p>
-      <div class="rules"><div><b>⚽</b>قرار صحيح = هدف لك</div><div><b>🧤</b>قرار خاطئ أو انتهاء الوقت = صدّ، ونقطة للأخطاء</div><div><b>⭐</b>سبب صحيح = نقطة إضافية</div></div>
+      <p>المباراة: <b>أنت ضد فريق الأخطاء</b>. ست ركلات ترجيح، وفي كل ركلة يظهر حل طالب على شاشة الإعادة.</p>
+      <div class="how">
+        <div><b class="n">1</b><span>اقرأ السؤال، ثم اقرأ حل الطالب سطرًا سطرًا.</span></div>
+        <div><b class="n">2</b><span>اضغط على <b>السطر الخاطئ</b>. وإذا كان الحل صحيحًا كله، اضغط <b>«✓ الحل صحيح كله»</b>.</span></div>
+        <div><b class="n">3</b><span>قرارك الصحيح = <b>هدف لك ⚽</b>. قرارك الخاطئ أو انتهاء ${SHOT} ثانية = <b>الحارس يصدّ 🧤</b> ويسجّل فريق الأخطاء نقطة.</span></div>
+        <div><b class="n">4</b><span>بعد كل ركلة اختر <b>سبب الخطأ</b>: السبب الصحيح = <b>نقطة إضافية ⭐</b>.</span></div>
+      </div>
+      <div class="lose">⚠️ <b>يمكنك أن تخسر!</b> إذا سجّل فريق الأخطاء نقاطًا أكثر منك في نهاية الركلات الست، تخسر المباراة.</div>
       <div class="law"><b>📌 قانون الرأس:</b> السيني للرأس: <b>ما داخل المطلق = 0</b>. والصادي: <b>العدد خارج المطلق</b>. والعدد قبل المطلق لا يغيّر الرأس.</div>
       <button type="button" class="btn big" id="go">🏁 ابدأ المباراة</button></div>`;
     $('#go').addEventListener('click', () => { whistle(); crowd(1.0, 0.12); round(); });
@@ -302,10 +312,11 @@
     const rank = you >= 11 ? ['🏆', 'حكم دولي!'] : you >= 8 ? ['🥇', 'نجم المباراة'] : you >= 5 ? ['🥈', 'لاعب واعد'] : ['💪', 'جرّب مرة أخرى، ستفوز'];
     let rec = 0; try { rec = +localStorage.getItem('bunyan-penalties') || 0; if (you > rec) localStorage.setItem('bunyan-penalties', you); } catch (e) {}
     const won = you > them;
-    $('#game').innerHTML = `<div class="card end"><div class="cup">${rank[0]}</div><h2>${won ? 'فزت على الأخطاء!' : 'انتهت المباراة'}</h2>
-      <div class="final">${you} – ${them}</div><p><b>${rank[1]}</b> · من ${max} نقطة · أطول سلسلة أهداف: ${best} 🔥</p>
+    const tie = you === them;
+    $('#game').innerHTML = `<div class="card end"><div class="cup">${won ? rank[0] : tie ? '🤝' : '😓'}</div><h2>${won ? 'فزت على فريق الأخطاء!' : tie ? 'تعادل! أعد المباراة لتحسم الفوز' : 'خسرت المباراة أمام فريق الأخطاء'}</h2>
+      <div class="final">${you} – ${them}</div><p><b>${won ? rank[1] : 'راجع أسباب الأخطاء، ثم العب من جديد'}</b> · من ${max} نقطة · أطول سلسلة أهداف: ${best} 🔥</p>
       <p class="best">${you > rec ? '🎉 رقم قياسي جديد على هذا الجهاز!' : `رقمك القياسي: ${rec}`}</p>
-      <p style="text-align:start"><b>الأخطاء التي واجهتها:</b> نسيان العدد خارج المطلق، الضرب في العدد قبل المطلق، القسمة الخاطئة، إهمال الشرط ${m(`${K} &gt; 0`)}، وقراءة الأقواس.</p>
+      <p style="text-align:start"><b>أخطاء الفهم التي واجهتها:</b> اعتبار ${m(X)} = العدد داخل المطلق، والظن أن العدد قبل المطلق يغيّر الرأس، والتربيع = الضرب في 2، وإهمال الشرط ${m(`${K} &gt; 0`)}، ومكان الأس في الأقواس.</p>
       <p>📸 صوّر نتيجتك وشاركها في التعليقات!</p>
       <button type="button" class="btn big" id="again">↺ مباراة جديدة</button></div>`;
     whistle(); setTimeout(() => { crowd(2.2, 0.25); if (won) confetti(120); }, 400);
