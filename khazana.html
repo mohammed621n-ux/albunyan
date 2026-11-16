@@ -1,0 +1,500 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>خزانة المقسوم عليه</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@500;700;900&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+  /* لوح أزرق مخطط (blueprint) وأوراق عمل ورقية فوقه؛ خزنة بخمسة أقفال في الأعلى */
+  :root {
+    --navy: #0f2140; --navy-2: #16305a; --grid: #ffffff12;
+    --paper: #fbf6ee; --ink: #1b2742; --muted: #5d6b84;
+    --orange: #f07a2a; --orange-soft: #ffe2cc; --gold: #ffc247;
+    --good: #1f9d55; --good-soft: #def5e7; --bad: #d23b2f; --bad-soft: #fde6e3;
+    --blue: #1f6fd6; --blue-soft: #e2edfc;
+    --f-ar: "Cairo", "Segoe UI", Tahoma, sans-serif;
+    --f-m: "STIX Two Text", "Cambria Math", "Times New Roman", serif;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: var(--f-ar); color: #fff; direction: rtl;
+    background-color: var(--navy);
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 28px 28px;
+    padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+    padding-block: 18px 40px;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+  .m { font-family: var(--f-m); direction: ltr; unicode-bidi: isolate; white-space: nowrap; font-size: 1.12em; }
+  .m i { font-style: italic; }
+
+  header { display: flex; align-items: center; gap: 12px; }
+  header img { width: 54px; height: 54px; border-radius: 50%; border: 2px solid var(--orange); flex: none; }
+  .who b { display: block; font-size: 18px; font-weight: 900; }
+  .who span { font-size: 13px; color: var(--gold); font-weight: 700; }
+  .grade { margin-inline-start: auto; font-size: 12px; font-weight: 700; color: #cfe0ff; border: 1px solid #ffffff33; border-radius: 20px; padding: 4px 12px; }
+
+  .hero h1 { margin: 6px 0 4px; font-size: clamp(30px, 7vw, 44px); font-weight: 900; line-height: 1.15; text-wrap: balance; }
+  .hero h1 em { font-style: normal; color: var(--orange); }
+  .hero p { margin: 0; color: #c9d6ee; font-size: 16px; line-height: 1.7; }
+
+  /* الخزنة */
+  .vault { position: relative; background: linear-gradient(160deg, #22406f, #13284a); border: 3px solid #35588f; border-radius: 22px; padding: 16px; display: flex; align-items: center; gap: 16px; box-shadow: inset 0 0 0 6px #0f2140, 0 14px 30px #00000055; overflow: hidden; }
+  .dial { width: 86px; height: 86px; flex: none; border-radius: 50%; background: radial-gradient(circle, #2e4f82 40%, #1a3360 41%, #1a3360 60%, #3a5f97 61%); border: 3px solid #5a7fb8; position: relative; transition: transform 0.9s cubic-bezier(.3,1.6,.5,1); }
+  .dial::after { content: ""; position: absolute; left: 50%; top: 6px; width: 4px; height: 22px; margin-left: -2px; background: var(--gold); border-radius: 2px; }
+  .vbody { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+  .vtitle { font-size: 14px; color: #c9d6ee; font-weight: 700; }
+  .locks { display: flex; gap: 8px; flex-wrap: wrap; }
+  .lock { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 12px; background: #0f2140; border: 1px solid #ffffff22; font-size: 13px; font-weight: 700; color: #8fa3c4; transition: all 0.4s; }
+  .lock svg { width: 16px; height: 16px; }
+  .lock.on { background: var(--good); color: #fff; border-color: transparent; }
+  .lock.now { border-color: var(--gold); color: var(--gold); }
+  .vcode { font-family: var(--f-m); font-size: 26px; direction: ltr; text-align: left; color: #8fa3c4; letter-spacing: 1px; }
+  .vault.open { border-color: var(--good); }
+  .vault.open .vcode { color: var(--gold); }
+
+  /* بطاقة السؤال */
+  .card { background: var(--paper); color: var(--ink); border-radius: 18px; padding: 18px; box-shadow: 0 10px 24px #00000044; }
+  .q { font-size: 17px; line-height: 2; }
+  .q .m { color: var(--blue); }
+  .tag { display: inline-block; background: var(--orange); color: #fff; font-weight: 900; font-size: 13px; border-radius: 8px; padding: 1px 10px; margin-inline-end: 6px; }
+
+  /* المرحلة */
+  .stage { display: flex; flex-direction: column; gap: 14px; }
+  .shead { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .snum { background: var(--navy); color: var(--gold); font-weight: 900; font-size: 13px; border-radius: 8px; padding: 2px 10px; }
+  .shead h2 { margin: 0; font-size: 22px; font-weight: 900; }
+  .explain { font-size: 16px; line-height: 1.9; margin: 0; }
+  .explain .m { color: var(--blue); }
+  .box { background: #fff; border: 2px dashed #c8d3e6; border-radius: 14px; padding: 12px 14px; font-size: 16px; line-height: 2; overflow-x: auto; }
+  .box .m { font-size: 1.2em; }
+  .ask { font-weight: 900; font-size: 17px; }
+  .choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .choice { font: inherit; font-size: 17px; min-height: 56px; border-radius: 14px; border: 2px solid #c8d3e6; background: #fff; color: var(--ink); cursor: pointer; padding: 8px 10px; transition: transform 0.15s, background 0.2s, border-color 0.2s; }
+  .choice:hover { border-color: var(--orange); transform: translateY(-2px); }
+  .choice:focus-visible, .btn:focus-visible, .diag:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .choice.ok { background: var(--good-soft); border-color: var(--good); }
+  .choice.no { background: var(--bad-soft); border-color: var(--bad); animation: shake 0.4s; }
+  .choice[disabled] { cursor: default; transform: none; }
+  @keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  .fb { border-radius: 14px; padding: 12px 14px; font-size: 15.5px; line-height: 1.9; }
+  .fb b { font-weight: 900; }
+  .fb.no { background: var(--bad-soft); border-inline-start: 5px solid var(--bad); }
+  .fb.ok { background: var(--good-soft); border-inline-start: 5px solid var(--good); }
+  .fb .m { font-size: 1.1em; } .fb .m, .explain .m, .traps .m, .diag .m, .q .m { white-space: normal; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .btn { font: inherit; font-weight: 900; font-size: 16px; border: 0; border-radius: 14px; padding: 12px 20px; cursor: pointer; background: var(--orange); color: #fff; box-shadow: 0 4px 0 #b9581a; }
+  .btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #b9581a; }
+  .btn.ghost { background: transparent; color: var(--muted); box-shadow: none; border: 2px solid #d5dceb; }
+  .hint { font-size: 15px; color: var(--muted); background: #fff7e6; border-radius: 12px; padding: 10px 12px; line-height: 1.8; }
+
+  /* الجدول */
+  .tblw { overflow-x: auto; }
+  .tbl { direction: ltr; display: grid; grid-template-columns: 74px repeat(3, minmax(78px, 1fr)); gap: 6px; min-width: 330px; position: relative; }
+  .tc { min-height: 64px; border-radius: 12px; display: flex; align-items: center; justify-content: center; white-space: nowrap; font-family: var(--f-m); font-size: 24px; transition: background 0.35s, box-shadow 0.35s, color 0.35s; }
+  .tc.hd { background: var(--navy); color: #fff; }
+  .tc.corner { background: transparent; color: var(--muted); font-size: 26px; }
+  .tc.rh { background: var(--orange); color: #fff; }
+  .tc.rh.unk { background: #fff; color: var(--orange); border: 2px dashed var(--orange); font-weight: 600; }
+  .tc.cell { background: #fff; border: 2px solid #dbe2ef; color: var(--ink); }
+  .tc.cell.fill { animation: pop 0.45s; }
+  .tc.d3 { box-shadow: inset 0 0 0 3px #8b5cf6; }
+  .tc.hl { background: #fff3c4; border-color: var(--gold); box-shadow: 0 0 0 3px var(--gold); }
+  .tc.target { background: var(--orange-soft); }
+  @keyframes pop { 0% { transform: scale(0.6); opacity: 0; } 70% { transform: scale(1.1); } 100% { transform: scale(1); opacity: 1; } }
+  .legend { font-size: 14px; color: var(--muted); line-height: 1.8; }
+  .diags { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .diag { font: inherit; text-align: start; border-radius: 14px; border: 2px solid #c8d3e6; background: #fff; padding: 10px 12px; cursor: pointer; color: var(--ink); line-height: 1.8; }
+  .diag.done { border-color: var(--good); background: var(--good-soft); cursor: default; }
+  .diag small { display: block; color: var(--muted); font-size: 13px; }
+
+  /* الفتح */
+  .win { text-align: center; overflow: hidden; padding: 4px; }
+  .win .big { font-family: var(--f-m); font-size: clamp(38px, 10vw, 56px); direction: ltr; color: var(--good); margin: 6px 0; }
+  .traps { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+  .traps li { background: #fff; border-radius: 12px; padding: 10px 12px; border-inline-start: 5px solid var(--bad); font-size: 15px; line-height: 1.8; }
+  .traps li b { color: var(--bad); }
+  .practice input { font-family: var(--f-m); font-size: 22px; direction: ltr; width: 100%; max-width: 260px; padding: 10px 12px; border-radius: 12px; border: 2px solid #c8d3e6; background: #fff; color: var(--ink); }
+  footer { text-align: center; color: #8fa3c4; font-size: 13px; }
+  .timer { font-family: var(--f-m); font-size: 26px; font-weight: 600; color: var(--gold); background: #0f2140; border: 2px solid #ffc24766; border-radius: 12px; padding: 0 12px; direction: ltr; }
+  .timer.low { color: #ff6b5e; border-color: #ff6b5e; animation: blink 0.5s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0.35; } }
+  .pen { position: fixed; left: 50%; top: 30%; transform: translateX(-50%); font-family: var(--f-m); font-size: 44px; font-weight: 600; color: #ff6b5e; text-shadow: 0 4px 0 #0008; pointer-events: none; z-index: 60; animation: penf 1.1s ease forwards; }
+  @keyframes penf { from { opacity: 1; transform: translate(-50%, 0); } to { opacity: 0; transform: translate(-50%, -60px); } }
+  .vault.alarm { animation: alarm 0.4s 3; } @keyframes alarm { 0%, 100% { box-shadow: inset 0 0 0 6px #0f2140; } 50% { box-shadow: inset 0 0 0 6px #ff3b30, 0 0 40px #ff3b30; transform: translateX(-5px); } }
+  .start { text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center; }
+  .start .rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; width: 100%; }
+  .start .rules div { background: #fff; border: 2px solid #dbe2ef; border-radius: 12px; padding: 8px 6px; font-size: 13.5px; font-weight: 800; line-height: 1.6; }
+  .start .rules b { display: block; font-size: 22px; }
+  .btn.big { font-size: 20px; padding: 16px 30px; }
+  .siren { position: fixed; inset: 0; z-index: 70; background: #3a0000e6; display: grid; place-items: center; padding: 20px; animation: sir 0.6s steps(2) 4; }
+  @keyframes sir { 50% { background: #0f2140e6; } }
+  .siren .card { max-width: 420px; text-align: center; }
+  .safe { position: relative; width: min(320px, 80vw); aspect-ratio: 1 / 0.8; margin: 6px auto; perspective: 900px; }
+  .safe .in { position: absolute; inset: 0; border-radius: 18px; background: radial-gradient(circle at 50% 40%, #fff3c4, #f0b429 60%, #a8730f); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; box-shadow: inset 0 0 30px #0006; }
+  .safe .in .gold { font-size: 34px; letter-spacing: 4px; }
+  .safe .in .m { font-size: 30px; color: #3b2a00; font-weight: 600; }
+  .safe .door { position: absolute; inset: 0; border-radius: 18px; background: linear-gradient(160deg, #3a5f97, #13284a); border: 5px solid #5a7fb8; transform-origin: 0 50%; transition: transform 1.6s cubic-bezier(.5,0,.2,1); display: grid; place-items: center; backface-visibility: hidden; }
+  .safe .door::after { content: ""; width: 38%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #2e4f82 40%, #1a3360 41%, #1a3360 60%, #3a5f97 61%); border: 4px solid #8fb0e0; }
+  .safe.open .door { transform: rotateY(-105deg); }
+  .stars { font-size: 44px; letter-spacing: 6px; text-align: center; }
+  .stars .off { filter: grayscale(1); opacity: 0.3; }
+  #sound { font: inherit; font-size: 13px; color: #cfe0ff; background: transparent; border: 1px solid #ffffff33; border-radius: 20px; padding: 4px 12px; cursor: pointer; }
+  .conf { position: fixed; top: -12px; width: 10px; height: 14px; border-radius: 2px; pointer-events: none; z-index: 30; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+  @media (max-width: 480px) {
+    .vault { padding: 12px; gap: 12px; } .dial { width: 64px; height: 64px; }
+    .lock span { display: none; } .vcode { font-size: 21px; } .grade { display: none; } header { gap: 10px; } #sound { margin-inline-start: auto; }
+    .tbl { grid-template-columns: 58px repeat(3, minmax(64px, 1fr)); } .tc { font-size: 20px; min-height: 56px; }
+    .choice { font-size: 16px; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img alt="شعار البنيان" src="data:image/jpeg;base64,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">
+    <div class="who"><b>م. محمد شقور</b><span>البنيان في الرياضيات</span></div>
+    <span class="grade">رياضيات الحادي عشر</span>
+    <button id="sound" type="button" aria-pressed="true">🔊 الصوت</button>
+  </header>
+
+  <section class="hero">
+    <h1>خزانة <em>المقسوم عليه</em></h1>
+    <p>المقسوم عليه <span class="m"><i>h</i>(<i>x</i>)</span> مقفول عليه داخل الخزانة. افتح الأقفال الخمسة بطريقة الجدول، وكل قفل خطوة من خطوات الحل.</p>
+  </section>
+
+  <div class="vault" id="vault">
+    <div class="dial" id="dial"></div>
+    <div class="vbody">
+      <div class="vtitle" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">رمز الخزانة: <span class="m"><i>h</i>(<i>x</i>) =</span><div class="timer" id="timer" style="margin-inline-start:auto">03:00</div></div>
+      <div class="vcode" id="vcode">? <i>x</i> + ?</div>
+      <div class="locks" id="locks"></div>
+    </div>
+  </div>
+
+  <div class="card q"><span class="tag">السؤال</span>
+    إذا كان ناتج قسمة كثير الحدود <span class="m">(2<i>x</i><sup>3</sup> + <i>x</i><sup>2</sup> + <i>x</i> + 2)</span> على المقدار <span class="m"><i>h</i>(<i>x</i>)</span> هو <span class="m">(<i>x</i><sup>2</sup> + <i>x</i> + 1)</span> والباقي يساوي <span class="m">3</span>، استعمل طريقة الجدول لإيجاد المقسوم عليه <span class="m"><i>h</i>(<i>x</i>)</span>.
+  </div>
+
+  <div class="card stage" id="stage" aria-live="polite"></div>
+
+  <footer><a href="index.html" style="color:inherit">🎮 كل ألعاب البنيان</a> · من أسئلة البنيان لرياضيات الحادي عشر · م. محمد شقور</footer>
+</div>
+
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const X = '<i>x</i>', H = '<i>h</i>(<i>x</i>)';
+  const sq = (n) => `<sup>${n}</sup>`;
+  const m = (t) => `<span class="m">${t}</span>`;
+  const F = `2${X}${sq(3)} + ${X}${sq(2)} + ${X} + 2`;
+  const Q = `${X}${sq(2)} + ${X} + 1`;
+  const LOCKS = ['العلاقة', 'الباقي', 'الدرجة', 'الجدول', 'التحقق'];
+  const lockSvg = (open) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="${open ? 'M8 11V7a4 4 0 0 1 7.5-2' : 'M8 11V7a4 4 0 0 1 8 0v4'}"/></svg>`;
+  let step = 0, a = null, b = null, tries = 0;
+
+  // الصوت: نغمات قصيرة بعد أول لمسة
+  let ac = null, soundOn = true;
+  const beep = (notes) => {
+    if (!soundOn) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      let t = ac.currentTime;
+      notes.forEach(([f, d]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = f; g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d); t += d * 0.8; });
+    } catch (e) { /* بلا صوت */ }
+  };
+  const good = () => beep([[660, 0.12], [880, 0.18]]);
+  const bad = () => beep([[220, 0.22]]);
+  const click = () => beep([[1200, 0.05]]);
+  $('#sound').addEventListener('click', (e) => { soundOn = !soundOn; e.currentTarget.textContent = soundOn ? '🔊 الصوت' : '🔇 بلا صوت'; e.currentTarget.setAttribute('aria-pressed', soundOn); });
+
+  const drawLocks = () => {
+    $('#locks').innerHTML = LOCKS.map((n, i) => `<div class="lock ${i < step ? 'on' : i === step ? 'now' : ''}">${lockSvg(i < step)}<span>${i + 1}. ${n}</span></div>`).join('');
+    $('#vcode').innerHTML = `${a ? (a === 1 ? '' : a) : '?'}${X} ${b === null ? '+ ?' : b < 0 ? '− ' + -b : '+ ' + b}`;
+    $('#dial').style.transform = `rotate(${step * 72}deg)`;
+  };
+  const unlock = () => { step++; tries = 0; good(); drawLocks(); };
+  // العدّ التنازلي: الخطأ يخصم 15 ثانية، والتلميح 20 ثانية
+  const TOTAL = 180; let tLeft = TOTAL, tId = null, alarmed = false;
+  const fmt = (v) => String(Math.floor(Math.max(0, v) / 60)).padStart(2, '0') + ':' + String(Math.max(0, v) % 60).padStart(2, '0');
+  const showT = () => { const t = $('#timer'); t.textContent = fmt(tLeft); t.classList.toggle('low', tLeft <= 30); };
+  const siren = () => beep([[880, 0.18], [620, 0.18], [880, 0.18], [620, 0.18]]);
+  const startClock = () => { clearInterval(tId); tId = setInterval(() => { tLeft--; showT(); if (tLeft <= 10 && tLeft > 0) beep([[1400, 0.04]]); if (tLeft <= 0) { clearInterval(tId); alarm(); } }, 1000); };
+  const penalty = (sec) => {
+    if (!tId) return; tLeft -= sec; showT();
+    const p = document.createElement('div'); p.className = 'pen'; p.textContent = '−' + sec + ' ث'; document.body.appendChild(p); setTimeout(() => p.remove(), 1200);
+    const v = $('#vault'); v.classList.remove('alarm'); void v.offsetWidth; v.classList.add('alarm'); siren();
+    if (tLeft <= 0) { clearInterval(tId); alarm(); }
+  };
+  const alarm = () => {
+    if (alarmed) return; alarmed = true; tId = null; siren(); setTimeout(siren, 800);
+    const o = document.createElement('div'); o.className = 'siren';
+    o.innerHTML = `<div class="card"><div style="font-size:64px">🚨</div><h2 style="margin:0">انطلق الإنذار!</h2><p class="explain">انتهى الوقت قبل فتح الخزانة. يمكنك إكمال الحل للتعلّم، لكن بلا نجوم.</p>
+      <div class="row" style="justify-content:center"><button type="button" class="btn" id="rst">↺ حاول من جديد</button><button type="button" class="btn ghost" id="cnt">أكمل الحل</button></div></div>`;
+    document.body.appendChild(o);
+    $('#rst', o).addEventListener('click', () => { o.remove(); restart(); });
+    $('#cnt', o).addEventListener('click', () => o.remove());
+  };
+
+  // سؤال اختيار من متعدد: كل خيار خاطئ يشرح الخطأ الذي يقود إليه
+  const mcq = (host, opts, onRight) => {
+    const g = document.createElement('div'); g.className = 'choices';
+    const fb = document.createElement('div');
+    opts.forEach(([label, ok, why]) => {
+      const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'choice'; btn.innerHTML = label;
+      btn.addEventListener('click', () => {
+        click();
+        if (ok) {
+          g.querySelectorAll('.choice').forEach((c) => (c.disabled = true));
+          btn.classList.add('ok'); fb.className = 'fb ok'; fb.innerHTML = why; unlock(); onRight && onRight();
+        } else {
+          tries++; btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no'); bad(); penalty(15);
+          fb.className = 'fb no'; fb.innerHTML = '<b>✗ خطأ شائع:</b> ' + why;
+        }
+      });
+      g.appendChild(btn);
+    });
+    host.append(g, fb);
+  };
+  const next = (host, label, fn) => {
+    const r = document.createElement('div'); r.className = 'row';
+    r.innerHTML = `<button type="button" class="btn">${label}</button>`;
+    r.firstChild.addEventListener('click', () => { click(); fn(); $('#stage').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    host.appendChild(r);
+  };
+  const head = (n, title) => `<div class="shead"><span class="snum">القفل ${n} من 5</span><h2>${title}</h2></div>`;
+  const hintBtn = (host, text) => {
+    const r = document.createElement('div'); r.className = 'row';
+    r.innerHTML = `<button type="button" class="btn ghost">💡 تلميح</button>`;
+    const h = document.createElement('div'); h.className = 'hint'; h.hidden = true; h.innerHTML = text;
+    let paid = false; r.firstChild.innerHTML = '💡 تلميح (−20 ث)';
+    r.firstChild.addEventListener('click', () => { click(); if (!paid) { paid = true; penalty(20); } h.hidden = !h.hidden; });
+    host.append(r, h);
+  };
+
+  const S = $('#stage');
+  const stages = [
+    // 1) العلاقة بين المقسوم والمقسوم عليه والناتج والباقي
+    () => {
+      S.innerHTML = head(1, 'العلاقة: كيف ترتبط الأجزاء الأربعة؟') +
+        `<p class="explain">في أي قسمة: <b>المقسوم = المقسوم عليه × الناتج + الباقي</b>. جرّبها بالأعداد: عندما نقسم ${m('7')} على ${m('2')} يكون الناتج ${m('3')} والباقي ${m('1')}، لأن ${m('7 = 2 × 3 + 1')}.</p>
+         <div class="box">${m(`${F} = ${H} × (${Q}) + <b style="color:var(--orange)">▢</b>`)}</div>
+         <div class="ask">ما الذي نضعه في المربع؟</div>`;
+      mcq(S, [
+        [m('3'), true, `<b>✓ صحيح.</b> الباقي ${m('3')}، فالعلاقة: ${m(`${F} = ${H}(${Q}) + 3`)}`],
+        [m(`${Q}`), false, `هذا هو الناتج، وهو مكتوب أصلًا داخل الضرب. المربع مكان <b>الباقي</b>.`],
+        [m('0'), false, `الصفر يكون باقيًا فقط عندما تكون القسمة تامة. السؤال قال: الباقي يساوي ${m('3')}.`],
+        [m(H), false, `${m(H)} هو المقسوم عليه، ومكانه مضروب في الناتج، لا مضافًا في الآخر.`],
+      ], () => next(S, 'إلى القفل الثاني ←', stages[1]));
+      hintBtn(S, `انظر إلى مثال الأعداد: ${m('7 = 2 × 3 + <b>1</b>')}. العدد الأخير المضاف هو الباقي.`);
+    },
+    // 2) التخلص من الباقي
+    () => {
+      S.innerHTML = head(2, 'نتخلص من الباقي') +
+        `<p class="explain">طريقة الجدول تعمل مع <b>الضرب فقط</b>، فنطرح الباقي ${m('3')} من الطرفين، ليبقى حاصل ضرب نظيف:</p>
+         <div class="box">${m(`${H} × (${Q}) = ${F} − 3`)}</div>
+         <div class="ask">ما ناتج ${m(`${F} − 3`)} ؟</div>`;
+      mcq(S, [
+        [m(`2${X}${sq(3)} + ${X}${sq(2)} + ${X} − 1`), true, `<b>✓ صحيح.</b> طرحنا ${m('3')} من الحد الثابت فقط: ${m('2 − 3 = −1')}. والآن: ${m(`${H}(${Q}) = 2${X}${sq(3)} + ${X}${sq(2)} + ${X} − 1`)}`],
+        [m(`2${X}${sq(3)} + ${X}${sq(2)} + ${X} + 5`), false, `جمعت ${m('3')} بدل أن تطرحه. الباقي في الطرف الآخر <b>مضاف</b>، فننقله بالطرح: ${m('2 − 3 = −1')}.`],
+        [m(`2${X}${sq(3)} + ${X}${sq(2)} + ${X} + 2`), false, `نسيت الباقي تمامًا. لو استعملت المقسوم كما هو في الجدول، لن تتطابق الحدود في آخره.`],
+        [m(`2${X}${sq(3)} + ${X}${sq(2)} + ${X} − 3`), false, `${m('3')} تُطرح من الحد الثابت ${m('2')}، فالناتج ${m('2 − 3 = −1')}، لا ${m('−3')}.`],
+      ], () => next(S, 'إلى القفل الثالث ←', stages[2]));
+      hintBtn(S, `الباقي عدد ثابت، فيتغيّر الحد الثابت وحده. الحدود التي فيها ${m(X)} تبقى كما هي.`);
+    },
+    // 3) درجة h
+    () => {
+      S.innerHTML = head(3, 'ما درجة المقسوم عليه؟') +
+        `<p class="explain">عند ضرب كثيري حدود، <b>تُجمع الدرجتان</b>: مثل ${m(`${X}${sq(1)} × ${X}${sq(2)} = ${X}${sq(3)}`)}.<br>
+         درجة الناتج ${m(`(${Q})`)} هي ${m('2')}، ودرجة حاصل الضرب ${m(`2${X}${sq(3)} + ⋯`)} هي ${m('3')}.</p>
+         <div class="box">درجة ${m(H)} ${m('+ 2 = 3')}</div>
+         <div class="ask">إذن درجة ${m(H)} هي:</div>`;
+      mcq(S, [
+        [m('1'), true, `<b>✓ صحيح.</b> ${m('1 + 2 = 3')}، فالمقسوم عليه من الدرجة الأولى، ونكتبه: ${m(`${H} = <b>a</b>${X} + <b>b</b>`)}، ونبحث عن ${m('a')} و ${m('b')}.`],
+        [m('2'), false, `${m('2 + 2 = 4')}، فيصبح حاصل الضرب من الدرجة الرابعة، والمقسوم من الدرجة الثالثة فقط.`],
+        [m('3'), false, `هذه درجة المقسوم، لا درجة المقسوم عليه. الدرجات <b>تُجمع</b> عند الضرب: ${m('? + 2 = 3')}.`],
+        [m('5'), false, `جمعت ${m('3 + 2')}، لكن ${m('3')} هي درجة حاصل الضرب نفسه. نريد: ${m('? + 2 = 3')}.`],
+      ], () => next(S, 'إلى الجدول ←', stages[3]));
+      hintBtn(S, `ابحث عن العدد الذي إذا جمعته مع ${m('2')} أعطى ${m('3')}.`);
+    },
+    // 4) الجدول
+    () => {
+      const cols = [`${X}${sq(2)}`, X, '1'];
+      S.innerHTML = head(4, 'طريقة الجدول') +
+        `<p class="explain">نكتب حدود الناتج ${m(`(${Q})`)} في <b>الصف العلوي</b>، وحدّي ${m(H)} المجهولين في <b>العمود الأيسر</b>. كل خانة = حد صفها × حد عمودها.</p>
+         <div class="tblw"><div class="tbl" id="tbl">
+           <div class="tc corner">×</div>${cols.map((c) => `<div class="tc hd"><span>${c}</span></div>`).join('')}
+           <div class="tc rh unk" id="r0"><span>?${X}</span></div><div class="tc cell" id="c00"></div><div class="tc cell" id="c01"></div><div class="tc cell" id="c02"></div>
+           <div class="tc rh unk" id="r1">?</div><div class="tc cell" id="c10"></div><div class="tc cell" id="c11"></div><div class="tc cell" id="c12"></div>
+         </div></div>
+         <div class="box">الهدف: مجموع خانات الجدول = ${m(`2${X}${sq(3)} + ${X}${sq(2)} + ${X} − 1`)}</div>
+         <div id="t1"></div>`;
+      const t1 = $('#t1');
+      $('#c00').classList.add('target');
+      t1.innerHTML = `<p class="explain">ابدأ من الخانة الملوّنة: أكبر حد ${m(`2${X}${sq(3)}`)} لا يأتي إلا من ضرب أول حد في الصف بأول حد في العمود.</p>
+                      <div class="ask">أي حد إذا ضربناه في ${m(`${X}${sq(2)}`)} أعطى ${m(`2${X}${sq(3)}`)}؟</div>`;
+      const sub = { n: 0 };
+      const fillRow = (r, vals) => vals.forEach((v, j) => setTimeout(() => { const c = $(`#c${r}${j}`); c.innerHTML = `<span>${v}</span>`; c.classList.add('fill'); click(); }, 250 * j));
+      // الخطوة الأولى داخل القفل: a
+      const g1 = document.createElement('div'); t1.appendChild(g1);
+      const askA = (onRight) => {
+        const g = document.createElement('div'); g.className = 'choices'; const fb = document.createElement('div');
+        [[`2${X}`, true], ['2', false, `${m(`2 × ${X}${sq(2)} = 2${X}${sq(2)}`)} من الدرجة الثانية. نحتاج ${m(X)} أيضًا لترتفع الدرجة إلى ${m('3')}.`],
+         [X, false, `${m(`${X} × ${X}${sq(2)} = ${X}${sq(3)}`)}، وينقصها المعامل ${m('2')}.`],
+         [`2${X}${sq(2)}`, false, `${m(`2${X}${sq(2)} × ${X}${sq(2)} = 2${X}${sq(4)}`)}: الأسس تُجمع، فالدرجة ${m('4')} لا ${m('3')}.`]].forEach(([l, ok, why]) => {
+          const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'choice'; btn.innerHTML = m(l);
+          btn.addEventListener('click', () => {
+            if (ok) { g.querySelectorAll('.choice').forEach((c) => (c.disabled = true)); btn.classList.add('ok'); good(); fb.className = 'fb ok'; fb.innerHTML = `<b>✓ صحيح.</b> ${m(`2${X} × ${X}${sq(2)} = 2${X}${sq(3)}`)}، إذن ${m('a = 2')}. نكمل الصف الأول بالضرب.`; onRight(); }
+            else { btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no'); bad(); penalty(15); fb.className = 'fb no'; fb.innerHTML = '<b>✗ خطأ شائع:</b> ' + why; }
+          });
+          g.appendChild(btn);
+        });
+        g1.append(g, fb);
+      };
+      askA(() => {
+        a = 2; drawLocks();
+        const r0 = $('#r0'); r0.classList.remove('unk'); r0.innerHTML = `<span>2${X}</span>`;
+        $('#c00').classList.remove('target');
+        fillRow(0, [`2${X}${sq(3)}`, `2${X}${sq(2)}`, `2${X}`]);
+        setTimeout(() => {
+          const t2 = document.createElement('div'); t2.className = 'stage';
+          t2.innerHTML = `<p class="explain">الحدود من النوع نفسه تقع على <b>قُطر</b> واحد. حدود ${m(`${X}${sq(2)}`)} هي الخانتان المضيئتان: ${m(`2${X}${sq(2)}`)} من الصف الأول، والخانة الفارغة أسفل اليسار.</p>
+            <div class="box">مجموعهما يجب أن يساوي حد ${m(`${X}${sq(2)}`)} في الهدف: ${m(`2${X}${sq(2)} + ▢ = ${X}${sq(2)}`)}</div>
+            <div class="ask">ما الذي يوضع في الخانة الفارغة؟</div>`;
+          t1.appendChild(t2);
+          $('#c01').classList.add('hl'); $('#c10').classList.add('hl', 'target');
+          const g = document.createElement('div'); g.className = 'choices'; const fb = document.createElement('div');
+          [[`−${X}${sq(2)}`, true], [`${X}${sq(2)}`, false, `${m(`2${X}${sq(2)} + ${X}${sq(2)} = 3${X}${sq(2)}`)}، والهدف ${m(`${X}${sq(2)}`)} فقط. نحتاج حدًا ينقص ${m(`${X}${sq(2)}`)}.`],
+           [`3${X}${sq(2)}`, false, `جمعت بدل أن تطرح: ${m(`${X}${sq(2)} − 2${X}${sq(2)} = −${X}${sq(2)}`)}.`],
+           ['−1', false, `الخانة في عمود ${m(`${X}${sq(2)}`)}، فناتجها فيه ${m(`${X}${sq(2)}`)}. الثابت ${m('−1')} مكانه الخانة الأخيرة.`]].forEach(([l, ok, why]) => {
+            const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'choice'; btn.innerHTML = m(l);
+            btn.addEventListener('click', () => {
+              if (ok) {
+                g.querySelectorAll('.choice').forEach((c) => (c.disabled = true)); btn.classList.add('ok'); fb.className = 'fb ok';
+                fb.innerHTML = `<b>✓ صحيح.</b> ${m(`2${X}${sq(2)} − ${X}${sq(2)} = ${X}${sq(2)}`)}. والخانة = (الحد المجهول) × ${m(`${X}${sq(2)}`)} = ${m(`−${X}${sq(2)}`)}، إذن الحد المجهول ${m('b = −1')}. انتبه للإشارة السالبة!`;
+                b = -1; const r1 = $('#r1'); r1.classList.remove('unk'); r1.innerHTML = '−1';
+                $('#c01').classList.remove('hl'); $('#c10').classList.remove('hl', 'target');
+                fillRow(1, [`−${X}${sq(2)}`, `−${X}`, '−1']);
+                unlock();
+                setTimeout(() => next(t2, 'إلى القفل الأخير ←', stages[4]), 900);
+              } else { btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no'); bad(); penalty(15); fb.className = 'fb no'; fb.innerHTML = '<b>✗ خطأ شائع:</b> ' + why; }
+            });
+            g.appendChild(btn);
+          });
+          t2.append(g, fb);
+          hintBtn(t2, `اسأل: ${m(`2${X}${sq(2)}`)} زائد كم يساوي ${m(`${X}${sq(2)}`)}؟ الجواب سالب.`);
+        }, 900);
+      });
+      hintBtn(t1, `فكّر: ${m(`? × ${X}${sq(2)} = 2${X}${sq(3)}`)}. نحتاج المعامل ${m('2')} وقوة واحدة من ${m(X)}.`);
+    },
+    // 5) التحقق
+    () => {
+      const checks = [
+        { id: 'k1', cells: ['c02', 'c11'], label: `حدود ${m(X)}`, sum: `2${X} − ${X} = ${X}`, goal: `${X}` },
+        { id: 'k0', cells: ['c12'], label: 'الحد الثابت', sum: '−1', goal: '−1' },
+        { id: 'k3', cells: ['c00'], label: `حد ${m(`${X}${sq(3)}`)}`, sum: `2${X}${sq(3)}`, goal: `2${X}${sq(3)}` },
+      ];
+      const host = document.createElement('div'); host.className = 'stage';
+      host.innerHTML = head(5, 'التحقق: هل يتطابق كل قُطر مع الهدف؟') +
+        `<p class="explain">وجدنا ${m('a')} و ${m('b')} من قُطرين فقط. القطران الباقيان يجب أن يتطابقا مع الهدف من غير أي تعديل. اضغط على كل بطاقة لتتحقق.</p>
+         <div class="diags">${checks.map((c) => `<button type="button" class="diag" id="${c.id}">${c.label}<small>اضغط للتحقق</small></button>`).join('')}
+         <button type="button" class="diag" id="kn">تحقق بالأعداد: ${m(`${X} = 1`)}<small>اضغط للتحقق</small></button></div>
+         <div id="kfb"></div>`;
+      S.appendChild(host);
+      host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      let done = 0;
+      const finish = () => { if (++done === 4) { unlock(); setTimeout(winStage, 700); } };
+      checks.forEach((c) => {
+        $('#' + c.id).addEventListener('click', (e) => {
+          const el = e.currentTarget; if (el.classList.contains('done')) return;
+          document.querySelectorAll('.tc.hl').forEach((t) => t.classList.remove('hl'));
+          c.cells.forEach((id) => $('#' + id).classList.add('hl'));
+          el.classList.add('done'); good();
+          el.innerHTML = `${c.label}<small>${m(c.sum)} ✓ مطابق للهدف ${m(c.goal)}</small>`;
+          finish();
+        });
+      });
+      $('#kn').addEventListener('click', (e) => {
+        const el = e.currentTarget; if (el.classList.contains('done')) return;
+        el.classList.add('done'); good();
+        el.innerHTML = `تحقق بالأعداد: ${m(`${X} = 1`)}<small>المقسوم: ${m('2 + 1 + 1 + 2 = 6')}<br>${m('(2 − 1) × (1 + 1 + 1) + 3 = 1 × 3 + 3 = 6')} ✓</small>`;
+        finish();
+      });
+    },
+  ];
+
+  const winStage = () => {
+    document.querySelectorAll('.tc.hl').forEach((t) => t.classList.remove('hl'));
+    $('#vault').classList.add('open'); clearInterval(tId);
+    const stars = alarmed ? 0 : tLeft >= 120 ? 3 : tLeft >= 60 ? 2 : 1;
+    let rec = null; try { const v = localStorage.getItem('bunyan-vault'); rec = v === null ? null : +v; if (!alarmed && (rec === null || tLeft > rec)) localStorage.setItem('bunyan-vault', tLeft); } catch (e) {}
+    beep([[523, 0.14], [659, 0.14], [784, 0.14], [1046, 0.3]]);
+    confetti();
+    const w = document.createElement('div'); w.className = 'stage';
+    w.innerHTML = `<div class="win"><div class="shead" style="justify-content:center"><h2>🔓 فُتحت الخزنة!</h2></div>
+        <div class="safe" id="safe"><div class="in"><div class="gold">🪙🪙🪙</div><div class="m">h(x) = 2x − 1</div><div class="gold">🪙🪙</div></div><div class="door"></div></div>
+        <div class="stars">${[1, 2, 3].map((k) => `<span class="${k <= stars ? '' : 'off'}">⭐</span>`).join('')}</div>
+        <p class="explain">${alarmed ? 'انطلق الإنذار هذه المرة، جرّب مرة أخرى لتجمع النجوم.' : `الوقت المتبقي: <b>${fmt(tLeft)}</b>${rec !== null && tLeft <= rec ? ` · أفضل وقت متبقٍّ لك: ${fmt(rec)}` : ' · 🎉 رقم قياسي جديد!'}`}</p>
+        <p class="explain">المقسوم عليه: ${m(`${H} = 2${X} − 1`)}</p></div>
+      <h2 style="margin:6px 0 0;font-size:20px">الأخطاء الشائعة في هذا السؤال</h2>
+      <ul class="traps">
+        <li><b>نسيان الباقي:</b> وضع المقسوم كما هو في الجدول. الصواب: نطرح ${m('3')} أولًا.</li>
+        <li><b>جمع الباقي بدل طرحه:</b> كتابة ${m('2 + 3 = 5')}. الصواب: ${m('2 − 3 = −1')}.</li>
+        <li><b>درجة خاطئة:</b> درجة ${m(H)} هي ${m('1')}، لأن الدرجات تُجمع عند الضرب: ${m('1 + 2 = 3')}.</li>
+        <li><b>الأسس عند الضرب:</b> ${m(`${X} × ${X}${sq(2)} = ${X}${sq(3)}`)} (تُجمع الأسس)، لا ${m(`${X}${sq(2)}`)}.</li>
+        <li><b>إشارة ${m('b')}:</b> ${m(`2${X}${sq(2)} + ▢ = ${X}${sq(2)}`)} يعطي ${m(`−${X}${sq(2)}`)}، فـ ${m('b = −1')} لا ${m('+1')}.</li>
+        <li><b>ترك التحقق:</b> القطران الباقيان والتعويض بعدد يكشفان أي خطأ قبل تسليم الورقة.</li>
+      </ul>
+      <div class="practice stage">
+        <h2 style="margin:0;font-size:20px">دورك الآن 🎯</h2>
+        <p class="explain">إذا كان ناتج قسمة ${m(`3${X}${sq(3)} − ${X}${sq(2)} + 3${X} + 1`)} على ${m(H)} هو ${m(`${X}${sq(2)} + 1`)} والباقي ${m('2')}، فأوجد ${m(H)} بطريقة الجدول.</p>
+        <div class="row"><input id="pin" type="text" inputmode="text" autocomplete="off" placeholder="مثل: 2x-1" aria-label="اكتب المقسوم عليه"><button type="button" class="btn" id="pchk">تحقق</button></div>
+        <div id="pfb"></div>
+      </div>
+      <div class="row"><button type="button" class="btn ghost" id="again">↺ العب من جديد</button></div>`;
+    S.appendChild(w);
+    w.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => { const sf = $('#safe'); if (sf) sf.classList.add('open'); beep([[300, 0.3], [200, 0.4]]); }, 700);
+    $('#pchk').addEventListener('click', () => {
+      const v = $('#pin').value.replace(/\s/g, '').replace(/[−–]/g, '-').replace(/X/g, 'x').replace(/^h\(x\)=/, '');
+      const fb = $('#pfb');
+      if (v === '3x-1' || v === '-1+3x') { good(); confetti(); fb.className = 'fb ok'; fb.innerHTML = `<b>✓ ممتاز!</b> ${m(`${H} = 3${X} − 1`)}. اكتب جوابك في تعليقات الفيديو ليراه زملاؤك.`; }
+      else if (v === '3x+1') { bad(); fb.className = 'fb no'; fb.innerHTML = `<b>قريب جدًا!</b> راجع إشارة الحد الثابت: قطر ${m(`${X}${sq(2)}`)} يجب أن يعطي ${m(`−${X}${sq(2)}`)}.`; }
+      else if (v === '3x') { bad(); fb.className = 'fb no'; fb.innerHTML = `ينقصك الحد الثابت. هل طرحت الباقي ${m('2')} قبل الجدول؟`; }
+      else { bad(); fb.className = 'fb no'; fb.innerHTML = `ليس بعد. ابدأ بطرح الباقي ${m('2')} من المقسوم، ثم الحد الأول: ${m(`? × ${X}${sq(2)} = 3${X}${sq(3)}`)}.`; }
+    });
+    $('#again').addEventListener('click', restart);
+  };
+
+  const confetti = () => {
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const cols = ['#f07a2a', '#ffc247', '#1f9d55', '#1f6fd6', '#ffffff'];
+    for (let i = 0; i < 70; i++) {
+      const d = document.createElement('div'); d.className = 'conf';
+      d.style.left = Math.random() * 100 + 'vw'; d.style.background = cols[i % cols.length];
+      d.style.animationDuration = 1.6 + Math.random() * 1.6 + 's'; d.style.animationDelay = Math.random() * 0.4 + 's';
+      document.body.appendChild(d); setTimeout(() => d.remove(), 3800);
+    }
+  };
+
+  function restart() { clearInterval(tId); tId = null; step = 0; a = null; b = null; alarmed = false; tLeft = TOTAL; showT(); $('#vault').classList.remove('open'); drawLocks(); stages[0](); startClock(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  const startScreen = () => {
+    S.innerHTML = `<div class="start"><div class="shead" style="justify-content:center"><h2>🕵️ المهمة: افتح الخزانة قبل الإنذار</h2></div>
+      <p class="explain">أمامك <b>3 دقائق</b> لفتح الأقفال الخمسة بطريقة الجدول.</p>
+      <div class="rules"><div><b>❌</b>إجابة خاطئة = −15 ثانية</div><div><b>💡</b>تلميح = −20 ثانية</div><div><b>⭐</b>نجوم حسب الوقت المتبقي</div></div>
+      <button type="button" class="btn big" id="begin">🔐 ابدأ المهمة</button></div>`;
+    $('#begin').addEventListener('click', () => { click(); stages[0](); startClock(); });
+  };
+  drawLocks(); showT(); startScreen();
+})();
+</script>
+
+</body>
+</html>
