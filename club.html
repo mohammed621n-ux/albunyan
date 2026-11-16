@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>بوّاب النادي</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&family=Orbitron:wght@700;900&display=swap">
+<style>
+  /* باب نادٍ ليلي بلافتة نيون، حبل مخملي، وضيوف أرقام ينتظرون الدخول */
+  :root {
+    --night: #0b0716; --wall: #1a1030; --wall-2: #24163f; --edge: #3b2766;
+    --neon: #ff3cac; --neon-2: #39d0ff; --gold: #ffc247; --orange: #f07a2a;
+    --paper: #fbf6ee; --ink: #1b2742; --muted: #6b7a93;
+    --good: #22c55e; --good-soft: #dcfce7; --bad: #ef4444; --bad-soft: #fee2e2; --blue: #2563eb;
+    --f-ar: "Cairo", "Segoe UI", Tahoma, sans-serif; --f-m: "STIX Two Text", "Cambria Math", "Times New Roman", serif; --f-led: "Orbitron", "Cairo", monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; font-family: var(--f-ar); color: #fff; direction: rtl; background: radial-gradient(ellipse at 50% -10%, #3a1a5c, var(--night) 60%) fixed;
+    padding: 14px max(14px, env(safe-area-inset-right, 0px)) 40px max(14px, env(safe-area-inset-left, 0px)); }
+  .wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .m { font-family: var(--f-m); direction: ltr; unicode-bidi: isolate; white-space: nowrap; font-size: 1.1em; }
+  .m i { font-style: italic; }
+  .fr { display: inline-flex; flex-direction: column; vertical-align: middle; text-align: center; line-height: 1.05; margin: 0 3px; } .fr .den { border-top: 2px solid currentColor; }
+  header { display: flex; align-items: center; gap: 10px; }
+  header img { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--orange); }
+  .who b { display: block; font-size: 16px; font-weight: 900; } .who span { font-size: 12px; color: var(--gold); font-weight: 800; }
+  #sound { margin-inline-start: auto; font: inherit; font-size: 13px; color: #fff; background: #ffffff14; border: 1px solid #ffffff2a; border-radius: 20px; padding: 4px 12px; cursor: pointer; }
+
+  .hud { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; background: #000a; border: 1px solid #ffffff22; border-radius: 14px; padding: 8px 12px; }
+  .hearts { font-size: 20px; letter-spacing: 2px; } .hearts .off { filter: grayscale(1); opacity: 0.25; }
+  .score { font-family: var(--f-led); color: var(--gold); font-size: 24px; text-align: center; text-shadow: 0 0 10px #ffc24788; }
+  .combo { font-size: 13px; font-weight: 900; color: var(--neon); min-width: 64px; text-align: left; }
+  .lvls { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .lv { text-align: center; border-radius: 10px; padding: 5px 2px; font-size: 12px; font-weight: 900; background: #ffffff10; color: #b9a7e6; border: 1px solid #ffffff1a; }
+  .lv.now { background: #ff3cac33; border-color: var(--neon); color: #fff; } .lv.done { background: #22c55e2a; border-color: var(--good); color: #c9f5da; }
+
+  .club { position: relative; height: 250px; border-radius: 20px; overflow: hidden; background: linear-gradient(180deg, var(--wall-2), var(--wall)); border: 2px solid var(--edge); }
+  .sign { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); font-weight: 900; font-size: 24px; color: #fff; padding: 2px 18px 6px; border: 3px solid var(--neon); border-radius: 14px; text-shadow: 0 0 8px var(--neon), 0 0 18px var(--neon); box-shadow: 0 0 14px var(--neon), inset 0 0 10px #ff3cac66; white-space: nowrap; animation: flick 3s infinite; }
+  @keyframes flick { 92% { opacity: 1; } 94% { opacity: 0.4; } 96% { opacity: 1; } }
+  .door { position: absolute; left: 22px; bottom: 0; width: 120px; height: 170px; border-radius: 60px 60px 0 0; background: linear-gradient(180deg, #2b1a4f, #120a24); border: 4px solid #6c4bb5; box-shadow: inset 0 0 30px #000; }
+  .door.open { background: linear-gradient(180deg, #ffe7a8, #ffb84d); box-shadow: 0 0 40px #ffc247; }
+  .rope { position: absolute; left: 150px; right: 150px; bottom: 60px; height: 10px; border-radius: 6px; background: #c2185b; box-shadow: 0 3px 0 #7b0f3a; }
+  .post { position: absolute; bottom: 0; width: 14px; height: 74px; border-radius: 6px; background: linear-gradient(90deg, #d4af37, #fff1b8, #d4af37); }
+  .bouncer { position: absolute; right: 18px; bottom: 0; font-size: 92px; line-height: 1; }
+  .guest { position: absolute; bottom: 70px; left: 50%; transform: translateX(-50%); width: 120px; height: 120px; border-radius: 22px; background: var(--paper); color: var(--ink); display: grid; place-items: center; box-shadow: 0 10px 24px #0008; transition: transform 0.6s cubic-bezier(.3,1.3,.5,1), opacity 0.6s; }
+  .guest .n { font-family: var(--f-m); font-size: 52px; font-weight: 600; direction: ltr; }
+  .guest .tag { position: absolute; top: -12px; background: var(--neon-2); color: #001; font-size: 12px; font-weight: 900; border-radius: 8px; padding: 0 8px; }
+  .guest.in { transform: translate(-260%, 0) scale(0.6); opacity: 0; }
+  .guest.out { transform: translate(260%, 30px) rotate(25deg); opacity: 0; }
+  .guest.enter { animation: walk 0.6s ease-out; } @keyframes walk { from { transform: translate(200%, 0); opacity: 0; } }
+  .tbar { position: absolute; left: 0; right: 0; bottom: 0; height: 7px; background: #0006; } .tbar i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--bad), var(--gold), var(--good)); transform-origin: left; }
+
+  .rule { background: #000a; border: 2px solid var(--neon-2); border-radius: 16px; padding: 10px 12px; text-align: center; box-shadow: 0 0 14px #39d0ff44; }
+  .rule .t { font-size: 14px; color: #a8ecff; font-weight: 800; } .rule .m { font-size: 24px; } .rule .lg { color: var(--neon); font-weight: 700; font-style: italic; }
+  .rule .hint { font-size: 13.5px; color: #e3d8ff; margin-top: 4px; line-height: 1.7; }
+  .acts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .act { font: inherit; font-size: 22px; font-weight: 900; border: 0; border-radius: 18px; padding: 16px 10px; cursor: pointer; color: #fff; transition: transform 0.1s; }
+  .act.yes { background: var(--good); box-shadow: 0 6px 0 #15803d; } .act.no { background: var(--bad); box-shadow: 0 6px 0 #b91c1c; }
+  .act:active { transform: translateY(3px); } .act[disabled] { opacity: 0.45; cursor: default; }
+  .act:focus-visible, .btn:focus-visible, #sound:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+  .card { background: var(--paper); color: var(--ink); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 9px; animation: up 0.3s ease; }
+  @keyframes up { from { opacity: 0; transform: translateY(14px); } }
+  .card h2 { margin: 0; font-size: 19px; font-weight: 900; } .card p { margin: 0; line-height: 1.85; font-size: 15.5px; }
+  .card .m { color: var(--blue); }
+  .chk { display: flex; align-items: center; gap: 10px; background: #fff; border: 2px solid #e2e8f0; border-radius: 12px; padding: 8px 10px; font-size: 15px; flex-wrap: wrap; }
+  .chk .m { font-size: 19px; color: var(--ink); }
+  .ok { color: var(--good); font-weight: 900; } .no { color: var(--bad); font-weight: 900; }
+  .verdict.ok { background: var(--good-soft); border-radius: 12px; padding: 8px 12px; } .verdict.no { background: var(--bad-soft); border-radius: 12px; padding: 8px 12px; }
+  .btn { font: inherit; font-weight: 900; font-size: 16px; border: 0; border-radius: 14px; padding: 12px 22px; cursor: pointer; background: var(--orange); color: #fff; box-shadow: 0 4px 0 #b9581a; align-self: flex-start; }
+  .btn.big { font-size: 20px; padding: 15px 30px; align-self: center; }
+  .nl { width: 100%; height: auto; }
+  .nlt { font: 18px "STIX Two Text", serif; fill: #475569; direction: ltr; unicode-bidi: bidi-override; }
+  .intro { display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; background: linear-gradient(180deg, var(--wall-2), var(--wall)); border: 2px solid var(--edge); border-radius: 22px; padding: 18px 14px; }
+  .intro h1 { margin: 0; font-size: clamp(34px, 9vw, 52px); font-weight: 900; line-height: 1.1; } .intro h1 em { font-style: normal; color: var(--neon); text-shadow: 0 0 14px var(--neon); }
+  .intro p { margin: 0; color: #ddd0ff; line-height: 1.8; }
+  .how { display: grid; gap: 8px; width: 100%; text-align: start; }
+  .how div { background: #00000055; border-radius: 12px; padding: 9px 12px; font-size: 14.5px; line-height: 1.8; display: flex; gap: 10px; align-items: flex-start; }
+  .how b.n { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--neon); display: grid; place-items: center; }
+  .lose { background: #3b0d1d; border: 2px solid var(--bad); border-radius: 12px; padding: 9px 12px; font-size: 14.5px; line-height: 1.8; width: 100%; text-align: start; }
+  .conf { position: fixed; top: -14px; width: 10px; height: 14px; border-radius: 2px; pointer-events: none; z-index: 60; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+  footer { text-align: center; color: #9a8cc4; font-size: 12.5px; } footer a { color: inherit; }
+  @media (max-width: 440px) { .bouncer { font-size: 70px; } .door { width: 96px; height: 140px; } .rope { left: 120px; right: 110px; } .sign { font-size: 19px; } }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img alt="شعار البنيان" src="data:image/jpeg;base64,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">
+    <div class="who"><b>م. محمد شقور</b><span>البنيان في الرياضيات</span></div>
+    <button id="sound" type="button" aria-pressed="true">🔊 الصوت</button>
+  </header>
+  <div class="hud"><span class="hearts" id="hearts"></span><span class="score" id="score">0</span><span class="combo" id="combo"></span></div>
+  <div class="lvls" id="lvls"></div>
+  <div class="club" id="club">
+    <div class="sign" id="sign">نادي البنيان</div>
+    <div class="door" id="door"></div>
+    <div class="post" style="left: 144px"></div><div class="post" style="right: 144px"></div><div class="rope"></div>
+    <div class="guest" id="guest" style="opacity:0"><span class="tag">ضيف</span><span class="n" id="gn"></span></div>
+    <div class="bouncer">🕴️</div>
+    <div class="tbar"><i id="tb"></i></div>
+  </div>
+  <div id="game" class="wrap" style="gap:14px"></div>
+  <footer><a href="index.html">🎮 كل ألعاب البنيان</a> · من أسئلة البنيان لرياضيات الحادي عشر · م. محمد شقور</footer>
+</div>
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const X = '<i>x</i>';
+  const m = (t) => `<span class="m">${t}</span>`;
+  const num = (v) => (v < 0 ? '−' : '') + String(Math.abs(v));
+  const par = (v) => (v < 0 ? `(${num(v)})` : num(v));
+  const C1 = `|${'<span class="fr"><span>3 − 2' + X + '</span><span class="den">5</span></span>'}| ≤ 1`;
+  const C2 = `|${X} + 1| ≤ 3`;
+  const c1 = (x) => Math.abs(3 - 2 * x) <= 5 + 1e-9;
+  const c2 = (x) => Math.abs(x + 1) <= 3 + 1e-9;
+  const show1 = (x) => { const a = Math.abs(3 - 2 * x); return `|3 − 2 × ${par(x)}| ÷ 5 = ${num(+a.toFixed(2))} ÷ 5 ${a <= 5 ? '≤' : '&gt;'} 1`; };
+  const show2 = (x) => { const a = Math.abs(x + 1); return `|${num(x)} + 1| = ${num(+a.toFixed(2))} ${a <= 3 ? '≤' : '&gt;'} 3`; };
+  const L = [
+    { name: 'الشرط الأول', sign: 'نادي الشرط الأول', rule: m(C1), hint: 'يدخل كل عدد يحقق هذا الشرط.', test: c1, uses: [1], G: [0, 4, 5, -1, -2, 2.5, 3], set: [-1, 4], opt: 'ب', optTxt: 'وهي الخيار ب في الفيديو: حل المتباينة الأولى وحدها.', time: 9 },
+    { name: 'الشرط الثاني', sign: 'نادي الشرط الثاني', rule: m(C2), hint: 'يدخل كل عدد يحقق هذا الشرط.', test: c2, uses: [2], G: [-4, 2, 3, -5, 0, 1.5, -3], set: [-4, 2], opt: 'د', optTxt: 'وهي الخيار د في الفيديو: حل المتباينة الثانية وحدها.', time: 8 },
+    { name: 'and', sign: 'نادي and', rule: `${m(C1)} <span class="lg">and</span> ${m(C2)}`, hint: '<b>and</b>: يدخل العدد فقط إذا حقق <b>الشرطين معًا</b>.', test: (x) => c1(x) && c2(x), uses: [1, 2], logic: 'and', G: [3, -3, 0, 2, -1, 4, 1.5], set: [-1, 2], opt: 'ج', optTxt: 'وهي الخيار ج: الجواب الصحيح لسؤال الفيديو، الجزء المشترك فقط.', time: 8 },
+    { name: 'or', sign: 'نادي or', rule: `${m(C1)} <span class="lg">or</span> ${m(C2)}`, hint: '<b>or</b>: يكفي أن يحقق العدد <b>شرطًا واحدًا</b> على الأقل.', test: (x) => c1(x) || c2(x), uses: [1, 2], logic: 'or', G: [3, -3, 5, -4.5, 0, 4, -5], set: [-4, 4], opt: 'أ', optTxt: 'وهي الخيار أ: لو كان السؤال or بدل and.', time: 7 },
+  ];
+  let lv = 0, gi = 0, hearts = 3, score = 0, streak = 0, bestStreak = 0, tId = null, left = 0, locked = false, done = [];
+
+  // الأصوات
+  let ac = null, soundOn = true;
+  const tone = (seq, type = 'triangle', vol = 0.1) => { if (!soundOn) return; try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); let t = ac.currentTime; seq.forEach(([f, d]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d); t += d * 0.85; }); } catch (e) {} };
+  const yes = () => tone([[523, 0.09], [784, 0.16]]), nope = () => tone([[180, 0.3]], 'sawtooth', 0.07), tick = () => tone([[1500, 0.03]], 'square', 0.03), fan = () => tone([[392, 0.12], [523, 0.12], [659, 0.12], [784, 0.3]]), beat = () => tone([[70, 0.12]], 'sine', 0.35);
+  $('#sound').addEventListener('click', (e) => { soundOn = !soundOn; e.currentTarget.textContent = soundOn ? '🔊 الصوت' : '🔇 بلا صوت'; e.currentTarget.setAttribute('aria-pressed', soundOn); });
+  const confetti = (n = 70) => { if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; const cols = ['#ff3cac', '#39d0ff', '#ffc247', '#22c55e', '#fff']; for (let k = 0; k < n; k++) { const d = document.createElement('div'); d.className = 'conf'; d.style.left = Math.random() * 100 + 'vw'; d.style.background = cols[k % cols.length]; d.style.animationDuration = 1.4 + Math.random() * 1.6 + 's'; document.body.appendChild(d); setTimeout(() => d.remove(), 3500); } };
+
+  const hud = () => {
+    $('#hearts').innerHTML = [1, 2, 3].map((k) => `<span class="${k <= hearts ? '' : 'off'}">❤️</span>`).join('');
+    $('#score').textContent = score; $('#combo').textContent = streak >= 3 ? `🔥 ×2 (${streak})` : streak >= 1 ? `🔥 ${streak}` : '';
+    $('#lvls').innerHTML = L.map((o, k) => `<div class="lv ${done[k] ? 'done' : k === lv ? 'now' : ''}">${k + 1}. ${o.name}</div>`).join('');
+  };
+  const setT = () => { $('#tb').style.transform = `scaleX(${Math.max(0, left) / L[lv].time})`; };
+  const stop = () => { clearInterval(tId); tId = null; };
+
+  const intro = () => {
+    hud(); $('#sign').textContent = 'نادي البنيان';
+    $('#game').innerHTML = `<div class="intro"><h1>بوّاب <em>النادي</em> 🕴️</h1>
+      <p>أنت بوّاب نادي الأعداد. كل ضيف عدد يريد الدخول، وقانون الدخول متباينة. هل يدخل أم يُمنع؟</p>
+      <div class="how">
+        <div><b class="n">1</b><span>اقرأ <b>قانون الدخول</b> في اللوحة الزرقاء.</span></div>
+        <div><b class="n">2</b><span>يصل ضيف عليه عدد. عوّض العدد في الشرط بسرعة.</span></div>
+        <div><b class="n">3</b><span>اضغط <b>«✓ يدخل»</b> إذا حقق القانون، أو <b>«✗ ممنوع»</b> إذا لم يحققه، قبل انتهاء الشريط.</span></div>
+        <div><b class="n">4</b><span>بعد كل قرار يظهر <b>التحقق</b>: قيمة كل شرط، وهل تحقق. ثلاث إجابات صحيحة متتالية = نقاط مضاعفة 🔥.</span></div>
+        <div><b class="n">5</b><span>أربعة مستويات: الشرط الأول، الشرط الثاني، ثم <b>and</b>، ثم <b>or</b>. وفي نهاية كل مستوى ترى الضيوف المقبولين على خط الأعداد.</span></div>
+      </div>
+      <div class="lose">⚠️ <b>يمكنك أن تخسر!</b> كل قرار خاطئ أو تأخير يُفقدك ❤️، وعند خسارة القلوب الثلاثة يُطرد البوّاب وتنتهي اللعبة.</div>
+      <button type="button" class="btn big" id="go">🚪 افتح النادي</button></div>`;
+    $('#go').addEventListener('click', () => { beat(); startLevel(0); });
+  };
+
+  const startLevel = (k) => {
+    lv = k; gi = 0; hud();
+    const o = L[lv]; $('#sign').textContent = o.sign;
+    $('#game').innerHTML = `<div class="card" style="text-align:center"><h2>المستوى ${lv + 1}: ${o.name}</h2><div class="rule"><div class="t">قانون الدخول</div>${o.rule}<div class="hint">${o.hint}</div></div>
+      <button type="button" class="btn big" id="st">ابدأ المستوى ▶</button></div>`;
+    $('#st').addEventListener('click', () => { beat(); nextGuest(); });
+  };
+
+  const nextGuest = () => {
+    const o = L[lv], x = o.G[gi]; locked = false; hud(); window.__truth = o.test(x);
+    const g = $('#guest'); g.className = 'guest'; g.style.opacity = 1; void g.offsetWidth; g.classList.add('enter'); $('#gn').textContent = num(x); $('#door').classList.remove('open');
+    $('#game').innerHTML = `<div class="rule"><div class="t">قانون الدخول · الضيف ${gi + 1} من ${o.G.length}</div>${o.rule}<div class="hint">${o.hint}</div></div>
+      <div class="acts"><button type="button" class="act yes" id="ay">✓ يدخل</button><button type="button" class="act no" id="an">✗ ممنوع</button></div><div id="after"></div>`;
+    $('#ay').addEventListener('click', () => decide(true));
+    $('#an').addEventListener('click', () => decide(false));
+    left = o.time; setT(); stop();
+    tId = setInterval(() => { left -= 0.1; setT(); if (Math.abs(left - Math.round(left)) < 0.05 && left <= 3 && left > 0) tick(); if (left <= 0) { stop(); decide(null); } }, 100);
+  };
+
+  const decide = (letIn) => {
+    if (locked) return; locked = true; stop();
+    const o = L[lv], x = o.G[gi], truth = o.test(x), right = letIn === truth;
+    document.querySelectorAll('.act').forEach((b) => (b.disabled = true));
+    const g = $('#guest');
+    if (truth) { $('#door').classList.add('open'); g.classList.add('in'); } else g.classList.add('out');
+    if (right) { streak++; bestStreak = Math.max(bestStreak, streak); score += streak >= 3 ? 20 : 10; yes(); }
+    else { streak = 0; hearts--; nope(); const c = $('#club'); c.animate([{ transform: 'translateX(-6px)' }, { transform: 'translateX(6px)' }, { transform: 'translateX(0)' }], { duration: 300 }); }
+    hud();
+    const r1 = c1(x), r2 = c2(x);
+    const line = (k) => k === 1 ? `<div class="chk">الشرط الأول: ${m(show1(x))} <span class="${r1 ? 'ok' : 'no'}">${r1 ? '✓' : '✗'}</span></div>` : `<div class="chk">الشرط الثاني: ${m(show2(x))} <span class="${r2 ? 'ok' : 'no'}">${r2 ? '✓' : '✗'}</span></div>`;
+    const why = o.logic === 'and' ? (truth ? 'الشرطان تحققا معًا، فيدخل.' : `${r1 || r2 ? 'تحقق شرط واحد فقط، و and تطلب الشرطين معًا' : 'لم يتحقق أي شرط'}، فيُمنع.`)
+      : o.logic === 'or' ? (truth ? `${r1 && r2 ? 'تحقق الشرطان' : 'تحقق شرط واحد، و or يكفيها شرط واحد'}، فيدخل.` : 'لم يتحقق أي شرط، فيُمنع.')
+      : (truth ? 'الشرط تحقق، فيدخل.' : 'الشرط لم يتحقق، فيُمنع.');
+    $('#after').innerHTML = `<div class="card"><div class="verdict ${right ? 'ok' : 'no'}"><b>${letIn === null ? '⏱ تأخرت! ' : ''}${right ? '✓ قرار صحيح' : '✗ قرار خاطئ'}</b> · الضيف ${m(num(x))} ${truth ? 'يدخل ✓' : 'ممنوع ✗'}</div>
+      ${o.uses.map(line).join('')}<p>${why}</p><button type="button" class="btn" id="nx">${hearts <= 0 ? 'النتيجة' : gi + 1 < o.G.length ? 'الضيف التالي ←' : 'نهاية المستوى ←'}</button></div>`;
+    $('#nx').addEventListener('click', () => { if (hearts <= 0) return over(); gi++; if (gi < o.G.length) nextGuest(); else endLevel(); });
+    $('#nx').focus({ preventScroll: true });
+  };
+
+  // خط الأعداد: الضيوف المقبولون والفترة
+  const nlSvg = (o) => {
+    const W = 600, x0 = 30, x1 = 570, u = (x1 - x0) / 12, xv = (v) => 300 + v * u;
+    let s = `<line x1="${x0}" y1="60" x2="${x1}" y2="60" stroke="#94a3b8" stroke-width="3"/>`;
+    for (let v = -6; v <= 6; v++) s += `<line x1="${xv(v)}" y1="52" x2="${xv(v)}" y2="68" stroke="#94a3b8" stroke-width="2"/><text x="${xv(v)}" y="92" text-anchor="middle" class="nlt">${num(v)}</text>`;
+    s += `<line x1="${xv(o.set[0])}" y1="60" x2="${xv(o.set[1])}" y2="60" stroke="#22c55e" stroke-width="12" stroke-linecap="round"/><circle cx="${xv(o.set[0])}" cy="60" r="9" fill="#22c55e"/><circle cx="${xv(o.set[1])}" cy="60" r="9" fill="#22c55e"/>`;
+    o.G.forEach((x) => { const t = o.test(x); s += `<circle cx="${xv(x)}" cy="28" r="9" fill="${t ? '#22c55e' : '#ef4444'}"/><text x="${xv(x)}" y="33" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">${t ? '✓' : '✗'}</text>`; });
+    return `<svg class="nl" viewBox="0 0 ${W} 100">${s}</svg>`;
+  };
+  const endLevel = () => {
+    done[lv] = true; hud(); fan(); confetti(40); $('#guest').style.opacity = 0;
+    const o = L[lv];
+    $('#game').innerHTML = `<div class="card"><h2>🎉 أنهيت المستوى ${lv + 1}: ${o.name}</h2>${nlSvg(o)}
+      <p>الضيوف المقبولون يقعون في الفترة ${m(`[${num(o.set[0])} , ${num(o.set[1])}]`)}. ${o.optTxt}</p>
+      ${lv === 2 ? `<p><b>لاحظ:</b> ${m('3')} حقق الأول فقط، و ${m('−3')} حقق الثاني فقط، فمُنعا في نادي and.</p>` : ''}
+      <button type="button" class="btn big" id="nl">${lv < 3 ? `المستوى التالي: ${L[lv + 1].name} ▶` : '🏆 النتيجة النهائية'}</button></div>`;
+    $('#nl').addEventListener('click', () => { if (lv < 3) startLevel(lv + 1); else finish(true); });
+  };
+
+  const over = () => finish(false);
+  const finish = (won) => {
+    stop(); $('#guest').style.opacity = 0; $('#sign').textContent = won ? 'نادي البنيان 🏆' : 'مغلق 🚫';
+    let rec = 0; try { rec = +localStorage.getItem('bunyan-club') || 0; if (score > rec) localStorage.setItem('bunyan-club', score); } catch (e) {}
+    const rank = !won ? 'طُرد البوّاب! 😅' : hearts === 3 ? 'بوّاب أسطوري 🏆' : hearts === 2 ? 'بوّاب محترف 🥇' : 'بوّاب ناجح 🥈';
+    $('#game').innerHTML = `<div class="card" style="text-align:center;align-items:center"><div style="font-size:70px">${won ? '🏆' : '🚫'}</div><h2>${rank}</h2>
+      <p style="font-family:'Orbitron',monospace;font-size:34px;color:#1b2742">${score}</p>
+      <p>${score > rec ? '🎉 رقم قياسي جديد على هذا الجهاز!' : `رقمك القياسي: ${rec}`} · أطول سلسلة صحيحة: ${bestStreak} 🔥</p>
+      <p style="text-align:start"><b>الخلاصة:</b> <b>and</b> = الجزء المشترك ⇐ ${m('[−1 , 2]')}، وهو الجواب الصحيح. و <b>or</b> = اتحاد الفترتين ⇐ ${m('[−4 , 4]')}.</p>
+      <p>📸 صوّر نتيجتك وشاركها في التعليقات!</p>
+      <button type="button" class="btn big" id="again">↺ العب من جديد</button></div>`;
+    if (won) { fan(); confetti(130); } else nope();
+    $('#again').addEventListener('click', () => { hearts = 3; score = 0; streak = 0; bestStreak = 0; done = []; startLevel(0); });
+  };
+
+  intro();
+})();
+</script>
+</body>
+</html>
