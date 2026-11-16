@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>غرفة التحكم بالمسبح</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&family=Orbitron:wght@700;900&display=swap">
+<style>
+  /* غرفة تحكم مائية: مسبح حي على اليمين، ورسم V(t) يتكوّن على اليسار، ولوحة مهام في الأسفل */
+  :root {
+    --deep: #04213a; --panel: #0a3354; --edge: #1d5c8a; --water: #29b6f6; --water-2: #0277bd; --foam: #b3e5fc;
+    --paper: #fbf6ee; --ink: #1b2742; --muted: #5d6b84; --orange: #f07a2a; --gold: #ffc247;
+    --good: #22c55e; --good-soft: #dcfce7; --bad: #ef4444; --bad-soft: #fee2e2; --blue: #1f6fd6;
+    --f-ar: "Cairo", "Segoe UI", Tahoma, sans-serif; --f-m: "STIX Two Text", "Cambria Math", "Times New Roman", serif; --f-led: "Orbitron", "Cairo", monospace;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; font-family: var(--f-ar); color: #fff; direction: rtl; background: radial-gradient(ellipse at 50% -10%, #0e5a8f, var(--deep) 60%) fixed;
+    padding: 14px max(14px, env(safe-area-inset-right, 0px)) 40px max(14px, env(safe-area-inset-left, 0px)); }
+  .wrap { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .m { font-family: var(--f-m); direction: ltr; unicode-bidi: isolate; white-space: nowrap; font-size: 1.08em; }
+  .m i { font-style: italic; }
+  header { display: flex; align-items: center; gap: 10px; }
+  header img { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--orange); }
+  .who b { display: block; font-size: 16px; font-weight: 900; } .who span { font-size: 12px; color: var(--gold); font-weight: 800; }
+  #sound { margin-inline-start: auto; font: inherit; font-size: 13px; color: #fff; background: #ffffff14; border: 1px solid #ffffff2a; border-radius: 20px; padding: 4px 12px; cursor: pointer; }
+  .hud { display: flex; align-items: center; gap: 10px; background: #0007; border: 1px solid #ffffff22; border-radius: 14px; padding: 8px 12px; flex-wrap: wrap; }
+  .drops { font-size: 20px; letter-spacing: 2px; } .drops .off { filter: grayscale(1); opacity: 0.25; }
+  .ms { display: flex; gap: 5px; margin-inline-start: auto; }
+  .mc { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 900; background: #ffffff14; color: #9fc6e6; border: 2px solid transparent; }
+  .mc.now { border-color: var(--gold); color: #fff; } .mc.done { background: var(--good); color: #fff; }
+
+  .lab { display: grid; grid-template-columns: 1fr 1.25fr; gap: 10px; background: var(--panel); border: 2px solid var(--edge); border-radius: 20px; padding: 10px; }
+  @media (max-width: 520px) { .lab { grid-template-columns: 1fr; } }
+  .poolbox { position: relative; height: 230px; border-radius: 0 0 22px 22px; border: 8px solid #f4ede6; border-top: 0; background: #e8f4ff; overflow: visible; }
+  .tiles { position: absolute; inset: 0; background-image: linear-gradient(#b9d9f2 1.5px, transparent 1.5px), linear-gradient(90deg, #b9d9f2 1.5px, transparent 1.5px); background-size: 26px 26px; border-radius: 0 0 14px 14px; }
+  .water { position: absolute; left: 0; right: 0; bottom: 0; height: 0%; background: linear-gradient(180deg, #4fc3f7dd, #0277bdee); border-radius: 0 0 14px 14px; transition: background 0.3s; }
+  .water::before { content: ""; position: absolute; left: 0; right: 0; top: -8px; height: 16px; border-radius: 50%; background: var(--foam); opacity: 0.85; }
+  .water.flood { background: linear-gradient(180deg, #ef5350dd, #b71c1cee); }
+  .spill { position: absolute; top: -14px; left: -14px; right: -14px; height: 14px; border-radius: 8px; background: #4fc3f7; opacity: 0; }
+  .spill.on { opacity: 1; animation: spill 0.4s infinite alternate; } @keyframes spill { to { transform: scaleX(1.06); } }
+  .mk { position: absolute; right: 6px; font: 700 15px var(--f-m); color: #0c4a7a; direction: ltr; }
+  .l100 { position: absolute; left: 0; right: 0; top: 0; border-top: 3px dashed #d32f2f88; }
+  .flag { position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); background: #b71c1c; color: #fff; font-weight: 900; font-size: 20px; border-radius: 12px; padding: 4px 14px; opacity: 0; white-space: nowrap; }
+  .flag.on { opacity: 1; animation: shk 0.3s 3; } @keyframes shk { 50% { transform: translate(-46%, -50%); } }
+  .pumps { display: flex; gap: 8px; justify-content: center; margin-bottom: 6px; }
+  .pump { font-size: 12.5px; font-weight: 900; border-radius: 10px; padding: 3px 10px; background: #263238; color: #78909c; border: 2px solid #455a64; }
+  .pump.on { color: #fff; border-color: var(--water); box-shadow: 0 0 12px #29b6f688; }
+  .pump .m { color: var(--gold); }
+  .read { display: flex; justify-content: space-around; margin-top: 8px; font-family: var(--f-led); font-size: 18px; direction: ltr; }
+  .read .t { color: var(--gold); } .read .v { color: #b3e5fc; }
+  .graph { background: #fbf6ee; border-radius: 14px; padding: 4px; }
+  .graph svg { width: 100%; height: auto; display: block; }
+  .gl { font: 13px var(--f-m); fill: #5d6b84; direction: ltr; unicode-bidi: bidi-override; } .gax { font: italic 15px var(--f-m); fill: #1b2742; }
+
+  .card { background: var(--paper); color: var(--ink); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; animation: up 0.3s ease; }
+  @keyframes up { from { opacity: 0; transform: translateY(14px); } }
+  .card h2 { margin: 0; font-size: 19px; font-weight: 900; } .card p { margin: 0; line-height: 1.85; font-size: 15.5px; }
+  .card .m { color: var(--blue); }
+  .tag { align-self: flex-start; background: var(--deep); color: var(--gold); border-radius: 8px; padding: 1px 10px; font-size: 12.5px; font-weight: 900; }
+  .data { background: #e8f4ff; border-radius: 12px; padding: 8px 12px; font-size: 15px; line-height: 1.9; }
+  .opts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .opt { font: inherit; min-height: 56px; border-radius: 14px; border: 2px solid #c8d3e6; background: #fff; color: var(--ink); cursor: pointer; font-size: 18px; box-shadow: 0 4px 0 #c8d3e6; padding: 6px; }
+  .opt .m { font-size: 19px; color: var(--ink); white-space: normal; }
+  .opt:hover:not([disabled]) { border-color: var(--orange); transform: translateY(-2px); }
+  .opt.ok { background: var(--good-soft); border-color: var(--good); } .opt.no { background: var(--bad-soft); border-color: var(--bad); }
+  .opt[disabled] { cursor: default; }
+  .fb { border-radius: 12px; padding: 9px 12px; line-height: 1.85; font-size: 15px; }
+  .fb.ok { background: var(--good-soft); border-inline-start: 5px solid var(--good); } .fb.no { background: var(--bad-soft); border-inline-start: 5px solid var(--bad); }
+  .fb .m { color: var(--ink); }
+  .btn { font: inherit; font-weight: 900; font-size: 16px; border: 0; border-radius: 14px; padding: 12px 22px; cursor: pointer; background: var(--orange); color: #fff; box-shadow: 0 4px 0 #b9581a; align-self: flex-start; }
+  .btn.big { font-size: 20px; padding: 15px 30px; align-self: center; } .btn[disabled] { opacity: 0.5; }
+  .opt:focus-visible, .btn:focus-visible, #sound:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+  .intro { display: flex; flex-direction: column; gap: 12px; align-items: center; text-align: center; background: linear-gradient(180deg, #0e4a75, var(--panel)); border: 2px solid var(--edge); border-radius: 22px; padding: 18px 14px; }
+  .intro h1 { margin: 0; font-size: clamp(32px, 8.5vw, 50px); font-weight: 900; line-height: 1.15; } .intro h1 em { font-style: normal; color: var(--water); }
+  .intro p { margin: 0; color: #cfe6f7; line-height: 1.8; }
+  .how { display: grid; gap: 8px; width: 100%; text-align: start; }
+  .how div { background: #0006; border-radius: 12px; padding: 9px 12px; font-size: 14.5px; line-height: 1.8; display: flex; gap: 10px; align-items: flex-start; }
+  .how b.n { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--water-2); display: grid; place-items: center; }
+  .lose { background: #3b0d0d; border: 2px solid var(--bad); border-radius: 12px; padding: 9px 12px; font-size: 14.5px; line-height: 1.8; width: 100%; text-align: start; }
+  .final { background: #fff; border: 3px solid var(--good); border-radius: 14px; padding: 10px; text-align: center; font-size: 18px; line-height: 2; }
+  .final .m { font-size: 22px; color: var(--ink); }
+  .stars { font-size: 40px; letter-spacing: 6px; text-align: center; } .stars .off { filter: grayscale(1); opacity: 0.3; }
+  .conf { position: fixed; top: -14px; width: 10px; height: 14px; border-radius: 2px; pointer-events: none; z-index: 60; animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(110vh) rotate(720deg); } }
+  footer { text-align: center; color: #8fb3d1; font-size: 12.5px; }
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img alt="شعار البنيان" src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCACAAIADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD6ZeRY13OQqjuaqTnzLhYpjiFh8pB6n3onuPLcrOoa3ccMO31ptpF5sbK3z2+fkz1//VVkE0MThXgmXfGPuse4pbFGSEgggbiQD1xUkk0cETyyukcUalnd2wqgdSSegr56+Kf7SMjPNo/giQIoykmqkct6+UD2/wBo/gO9XCEpuyIlJR1Z7H4x+JPhjwHDu1zU44p2GUtYxvnf6IOn1OBXiXif9qvU7hni8M6Lb2cXQXF8fMkPuEBCj8Sa8Tig1LX9R4FzfXty+Sx3SSSsfzJrp18C2GiYbxTrMNi/U2dsBPc/QgHan/Aj+FaTlQo6Td32/wCAQlVqax0RHq/xf8e68zfa/E+oqjf8s7ZhCv5IBXOz6nqt2d1xfX0xPeSdm/ma6VvEXg/SzjTvDb3rD/lrqVyxz77I9o/U03/hZksfFv4f8Owr6DTkb9WyaaxFV/w6X32QnSgvimc1DqGpWrboLy8ib1jmYH9DXQ6T8V/HWhMPsfijUwo/gmk85fyfNSf8LMnk4uNC8OzL6HTY1/VcGnjxP4T1MhdR8Lpak9ZdOuWjI/4A+5f5UOvVXx0tPKzBUab+GZ3/AIZ/aq12zZIvEWk2upQ9GmtT5Mv1xyp/Svb/AAT8V/Cfj4CPSdSVbzGWsrkeXMPoDw3/AAEmvlNvBmj65z4Y1uOaY9LO+AgmPspzsb8wfauYv9L1Lw/fmG6guLO7hYEbgUdD2I7/AIiphKhWdo6S7P8AyHJVaer1R+gWAeoBqF4jFHJ5A/eOckk181/C79pK80todJ8ZvJe2fCJqIGZof+ug/jX3+99a961LV5biwh1DSZY7q3lUSJJEwZXU9wRWc6coOzNI1FJXRp+Y1uRBGQqpjfIRnk1ZtpjNHubAIJHHQ1jaNq8WpAM7GKYcOP73savsGK+Yx+zxx/cUdzUMpMrWhXznCMzwbR97nmrTzpEjO7KiICSxOAoHUn0FIlsqLtXAHoK8I/aQ+JbafF/whWlTbZp0D6jIp5SM8rF9W6n2wO9XCDnKyJlLlV2cf8bPjTN4yuZdB0Kd4tChbbJIpwb5h3P/AEz9B36ntXB+GfCUutCW9u50sNMtsGe8lHyp6KB/E57KKZ4S8N/25dSTXUv2XTbRPNurkjiKMenqx6AdzT/Fnio6u0djYRfY9JtMra2qn7o7ux/ic9z/AErWpOTl9XofN9v+CZwikva1fkjQ1LxvDpdtJpfhWBtPtWGyS6OPtVyP9px90f7K8eua495JJiWdiSeetNAx70uT07V00MLCkvdWvfqYVa8qj12G7fStfwv4S1nxjqi6botk9zNjdI5+WOFO7ux4VR6msknivWfGVzfabo/gzwP4feHS7DXNMs7m88ldrXVxMxUtK4+ZlHHHT9K2nJqyREYp6szvHPgHw34Y8AafqWkasutX8mqPZ3d7FkQBkjyUiHdQSPm74rzcjNexat8MPF5+H9/o+kpbavpuh67c71iQpch0UKzBc4ZTnOByMd68dyAM1NF3T1uVUVntYdHI8RyjEV1uk+OvPtU0rxFb/wBqaePlQucT2/vFJ1H+6cg1lHwrcRqhuNS0i1kdFk8qa52uoYZGRjg4NZl7a/Y7hoPtFvcbQD5lu+9Dn0NcreGxXuxd35fozo5K+H96Ssv66HQeJPCQ062TVdLuPt+kznCXCrgo39yRf4W/Q9q6f4O/F+68AXy6bqbSXPh64f8AexHk2rH/AJaJ/Ve/1rj/AAr4om0G4dJI1urK4Ty7m1k+5Omeh9COzdQan8XeHYdNeHUdLka40q9Be3kP3lx96N/R17+vB71EJyhL2FfW+z/rqEoqS9rS+aPrPWoDKtvqOiyLLDMFkSSI5V1PIIPpXV2EbS2cMtwhaRVzt9TXzx+zb8TBa3Q8E6vLm3nJbTZHP+rk6mL6Hkj3yO9fSinbwOlZVYODsy6clJXRheLvEtt4Q8Najrl0QY7OEuEz99+ir+LED8a+HL29vvEutT3l27XF7fTmWRupZ2PQfngV79+1R4ja2sNI8NwyEG5dr24APVF+VAf+BFj/AMBrx/4fRR2ct94huEDJpUBmjDdGnJ2xD/vo5/4DWnP7Gi6nXoTy+0qqHQm8ZXS+H9Ph8JWbj9wRLfup/wBbc46fRB8o98muLA9etSXNxJd3UksjF3dixYnkmos8kV1YSh7KnZ7vf1MK9Tnlfp0FrU8NaZb6vrdtY3UjxwybtzJ1GFJ9D3FZddb4LU/2Rrbpff2W6eSft+3Owbj8nHPPHT0rHM68qOGlKLs3on2u7X67X7G+XUVVxEYy239ba26bmP4e8N3viW/ezszGnljdJJIcBVzjOOp+leqS6CtodEub66m1G9tLrT7SGebAEMSzoAiKOFHX1PJ5rK0q9tdL8c69JeSRW0aW0IaVyFErcfMAO7dcCrc+v6hd3sm/SbkafY39nMZDGyzIgaOUs0R5IK5IxzjHFfI4rMMdicXT5Hy0VyN9N7aX677fgfU4bA4OhhanP71V8yXXa+tunqe6/D7U7Jh4701buA3sWt38r2+8eYqMBhtvXBwea+TvDnh+x8QwxpbtOl3BNG90JGGxoSxDMoHPHGc+teohNL8V63r2q2VwxWTV7iS2vrVzHKqsRghhgjPofyqhYfA/Urz4eQ+MPC2rNHdGG5S8tZyFEkaSOp2MBwSq9D36EV61LGrEyrYejJwnBr0/4Y8qpg3ho0q9VKUJp+pxtnBYeJptQ1S8t4vOe6c2aNPs+1EKcREdgAF5GPTvXGkEE5UKcnI9ParWi6Pc65fQ2VlHvkk6k9EXux9hV3xXp1lpOsvZWEgkhiijBcNnc+PmJ989q9LDcmHxDwyndtXS/lS079f8zhxHPXoKvyWSdm+7ev4f5GK3AOMZxXZeCdUgu47jw1qLqLTUSBG7dLefokg9Bn5T7H2rjz0p0TmGVWHH0rtxVBVabj16epw0arpzTL11Be6Bq7RkvbXlpNkEHDRyKeo+hFfavw58Yr448G6fri7RNKnl3KD+CZeHH58j2Ir5M8bL/bGmaV4lXBkuozBckf8APePAJP8AvLtP516X+yr4qMGpat4Znk/dXEYvYFJ6OuFfH1BU/wDAa5YTdagpvdb/AKnRKPs6vKtmcV+0Jq7ap8UtUj3Ex2KRWiD0woY/+PMayLkrpvw5to14k1G9eRvUpEoUfq7VT+JVy178Q/EU7HJbUph+AcgfoKseLj5fh7w3bjgCzeT8Wlb/AApYlXdGn5/krhQdlUn5fqcjxt560uaMYor1EjjFGO/TvXa3TaJpHh7TNOuherHfsb6cEru24IQNjt3GK5GwtxdX1tDIHEUsqIzAdiwBq/4uv/7W167uII3+zIfJgAU4EaDaMfln8a8jHU/b16dJtqKu3butF87u/wAj0sHU9hRnUSu3ZL03f+XzPV/CtlqMHivw89paWqa0syabKdTjjkVNgEgbOOGaMnBXBPFHxvvbmx8TeLbi0nkgmj1KzKvGcH/j2Suj+K9hJ4bu9K8RwMYhe2FvPG/ZL22Csmf95OPohrlfjtvk1vxY2w5bULI8c5/0ZOleN7NQiqM9YqcbX7Np/hqvker7Rzk60ficHe3dJr/JmD4Z1WTVzp2qPHHbXp1OOznlt/kFyhQn51HBPvXuXhDXrDw58AVuL+QqJkvLaGNRl5pXmlVEUdySf5mvn7wWy2ujWc9wfKii1qN3d+AqiJsk+1dboT6pcaJZTajG0sOnrMdLshhf9Y7OZGzxvbcAM9F+priqYqlgKtadtL2iu7u7L0X4I7IYWpjadGF9d5PstLv1f4szNBtLP4fQafYzBZtX1SVI5MH7ik4PP90fqa474gEt4quiXZvlTlovLPT0/r3ratvDXiq98WWurarZgAXKO585CI0B6AZ6AVi+P4pE8U3W6OUDah+d956evp7dq6MojBZgqjqKc5Qbk001e60XktjHNHN4BwVNwhGSUU01pZ6vzZzZzSkk9ST9aKTFfanyJ2WhH+0vA2tWTHJtHivYx6c+W36Mv5VL8GtV/sf4naBPuISS5+yv7rICn8yPyqv8Pz5ia3bnpLpc/H0AYfyrD0K4az8Q6fcIcNDeROD9HBrzMOrVatP5/ejsrO8Kc/63NL4iwNafEDxDC/BTUpz+bkj9DVjxcPM0Hw5MOhsmT8Vlf/GtX472P2T4navKg/d3fl3SH13IAf8Ax5TWZeY1HwBZSAZewu5IW/3ZAGX9ValiXaVGfS/5odBXjUh5fqcgDmkpRjFBHcV6hxlyPWdRjsBp6XsyWgbeIgcAHOc/nzVxPFPiGzVbZdTvIViUKsZ+XaAOBjHpWla+CNYtvBEfxAjntI7GC+W3jjcnzHcMMMBjBGc8E9jXZeC9NHx58V+IdU8WzSJc2umCeP7CFiUlPlAIIORXHUo0Gm5QTXXRbnTCtWVuWbT9XsZ/iNPHGs/Cmy8V6z4slv8ASZrz7NHYSZ3o43ruzjHQH8DXI3PjzxReSGS4129kcgDczDOAMDt6AV6RqhJ/ZT0Zm/6DBz7fPLXNfAXw3pHi34j2ul6zZR39k1tNI0Lk7cheCcH1pOnSnB+0imk+yCNSpCS9nJpvzZleGU8UfEPWrbw1DrSh7olh9sl2xfIN3PBz06YrP1LxH4jguprK61ieVraYoxSQMu5G6gjqMjINdj8LPCej678a5fD+p6clzpqTXqm2bcFUJu29DnjAp3w28J6LrXxxm8PX+nR3Glpc3qfZW3BVVA+0cHPGBWf1bDJ/w42Svsi1icQ/+Xju9N2ZPw/svE/xF8UQ6DZ6+9pO4kuhNNkqGVeTxzkjira+D/EuqeD/ABZ4hl8QI9tpF19kvIGBLXJQqoIPTHzDr6V03wRtINO/aEvrG3jEMNu+oRRxc/IisQBz6DFaWk/8kX+K3/YXl/8ARiUnQoxneEEtui7j9vVlG0pt79X2PBKCaO1B4HavROE63wB+7/ti4P3Y9MuCT9QF/rWFosDXevWMCDLS3cSAe5cCt3QT/Z3g7W7xhj7T5Vmh9SW3t+iD86m+DuktrfxN8O2wXKreLcP/ALseXP8A6DXm4d3q1qny+5HZWVqdOPz/ABPR/wBpjwq9sNL12NCUBa0lPoDlk/8AZhXl3gl1vUv9CkYD7fDiLP8Az2T5k/Pkf8Cr7B8eeE4PGvhTUdFl2hriI+U5/gkHKN+YH618ROl5oeqskyPb3dpMUdTw0bqf6EUOHtqDprdbfoNT9lVU3syrKjW87KykEHBBpnLfjXV+LLSLVYYvEVmgWG7OJ0Uf6qf+IfQ/eH1PpXKYx+eOldOFrqrTT69fUxr0vZza6Hsvw/1Tw542+Fl18ONc1u30K+hu/tlhdXBAic5zgkkDOSwIyOCMdK2NFt/DfwG8N6/dzeKdN17xDqtsbS1ttPcMsanPLYJwMnJJx0wM14EQGGDzXUaL4IOo2tm6mFoLxDJJepcIosdpYFHjJBJwoPb7460TppXu9GKM2+mpp+BPjN4i8B6LJoltbabqWms5lW3v4S4Rj1IwRwcZwe9ej+Gfi34y8SaBqep6TH4F0CS2mhtS7xmOYmVgoZQSRgZzz6H0rzW++Hj399e3Glm3h0/y7aSzAuYyJ9+wOBl85UF2Of7pFaU/w20uzlMRuUuGhe4tUado4lvZDBM0UkZEpOA6IOQudy+tTP2b16lR50dP4s+O/jXwfrmoaKYPCcuowYjfVLG2LGQlQdwO7GeeQR1HSn+D/jl428X65b6LZR+E9L1G8RlbVLi3KHIUkknOCxxwMYzXC6T8O0hvma8miuILNrYXaF0VU822eVgWDdUZQuBnNYXiHREXUb+XTIov7Ptmto2cSAqjSxgjknoWD5PQU1Cm9FuJymtT0h/2lPFmkajNHLpHhe6vbeRoZL2O3bMxU7SwZWGQcdq4m2+JurW3hfxB4cS1sjaa/ctdXLlW3oxIOE5xj5R1BqxH8Nbmy8Oahd6wUs7tFeSFPMjcKiRiQMSJORJnapAbp2zXD5Iq6cKb2RMpS6i8cA9KVF8x1VckU08iul8IabCjy6zfpmysAJGU/wDLV/4Ix9T19gaWJrqjTcmOhSdSaiWPFb/2Vo2maCOJY1N1cD0kkAwD9EC/ma9J/ZX8P+Zrmq+I5kPl2cItIWPeR+W/JVH/AH1Xi+oXl1reqS3Mm6W4uJM4UZLMT0A/QV9mfC7wI3grwXYaVKoW6K+fdEd5n5Yfhwv4VxqDoYdRfxS1fz1Z0OSq1rrZFbwx8TtO192iRgrDoD3rx/8AaH8HwS33/CW6aFHnYjvo1/vdFl/EcH8D61wuiazcaTdpdQsRg5xnrXd63q7+MtCkWBxv2YZM9aiFR05cyBpTVmeV+GtcTTZJbK+QzaddDZPGOuOzL/tDqPypniDw/JpU6yxus9nN88Fwudsi+vsexHY1TvNKu7Td50DoiHG/HArQ0PxJ9ihbTtQh+16dKctETgof76H+Fv5961qQlGX1ihrfdd/+CKnOMo+xq/J/10MHNPjtvPEjAxjy13HcQCR7etdDqnhTNudQ0ib7fY9SyD95D7SL2+vSqWmaXI+wySxW5MqvG5bdKxGflSMcsSfXA962jjKcoc0X/XoQ8NNT5WhllZXK280NreZW5t/Mkhgf72DwsgOPU+vX3qk9iIYEuN64ZtoKKSAQASCemRkcDNdLA2laeBeX1hfQX00kzBDswsbZw3ltzx0xxnnBqkn2CSwFjBNflZXAjSV40QydN5XOcHj6Y6nPGEcVK7dnb0+82lhopWur/wBWKt9PqmpRm3udSnvLeN/MXzJWMRfABYbuMgYGau+G21vRpLjUdHmUtDExuI1kZQY/UgEbh1I/3c0RRR28Qtri+s7S4im88If3qxKV2sOMgtwp2+3WtGW502O2XRktxqaRyeUk8DtCkhxnO1WPmE+pxUVcXNJRgr/LS3fovxLp4WD1m7fPr+L/AAOSvbmfULuS8vJZJ7iY72llYszfieahNdGBa6VBdwywwX87RGFXfHlw88BcAlnGc5yAMYyaZpXhSWaEX+oyrY6eP+W8o+/7IvVj9OK6frsIxcpaLp5+iOf6rNtJavr5FPQNBuNauvLTbHEg3yyvwkSDqzH0q54k1qGeOLSNM3Jp1qTtJ4aZ+8je57DsKXWvEUT239laPE1tp6nLZP7ydv7zn+Q6Cug+Enwmv/iRqnmyiS30S3cfarvGDIf+ecfqx7nt+VYwhKpL29fRLZfq/P8AIuclCPsqWre7/T0Ox/Zt+Fz61qq+L9Ug/wCJfYPizRxxPOP4vdU/9C+lfUJqhpFjb6TYwadY20dtZ2yCKGJBgIo7VNNe+S5RoyG/gJ6N+NRUqOpK44Q5FY+FNO864wqRvIO2BXb+E/DGvi7WWG3dYz1Bro/A3hePw9qDw38KkB8oxFevWcMSRiZEUMeI0WoUkw5GcJpfg+9vLhoruwhkhkG11dchgeorjfiH+zxqWmRPqnhaJ722wWksAcyxf7n98e3X619B2k4QhHXZIR0rVgnDfKeD2Nawqyg9BOmpKzPgyy1HUNEvPMtpZreeM7SOVZT3BH9DW4niLR9WOdZ04xXH/P1YkRsT6lPun8MV9X+NfhP4U8eAyanYeVekcXtqRHN+J6N/wIGvEfE/7L3iPT2eXQL+01eEciOU+RMPbn5T+YqpwoVnzS92Xdf5/wCYoSq0lZarseey+HNN1SRpbPxDbSM3O283RP8AiTkH86iPgLVWGYfss6+sd1GwP/j1M1f4f+LvD7MNR8ParbKvV/IZk/76XI/WsJmeIlWfa3owwaccPXirU6t15q/5WE61Ju84a+T/AM7nQDwBq6jMi20Kju91EoH/AI9Tl8K6ba86jr1hHj+CDMz/AKDH61zgd5DhZNx9Bya2tI8DeKvEDKNM0DVbsNwGSBgv/fRAH603QxD+OrZeS/zuCq0V8NO/q/8AKxb/ALa0DRRjS9Oa8nHS4vsED3EY4/MmsXU9Z1DWpxLeXEszn5VB7egA7fQV6t4X/Zg8V6o6Sa3c2ei255K7vPmx/ur8o/Fq9v8ABHwY8JeBGS4tLI3uoL/y+3mHcH1UdE/AZ96mFOhRfN8Uu71/r5DlOrUXLsjxL4Xfs7ap4jeHVPFCTaXpPDrbn5bi5H0/gU+p59B3r6f0rS7HRdPg07TbWK0tLddkUMYwqj/PfvVguAwUkZboD3qGS7SJiCGIHUgcL9aipVlN3ZUIKOxO8nlqx6kAnHriqTSM6o7lZkl6xj+H6VHPJI/yMD56nMbqOGFWoreOM79qhiOSKzLP/9k=">
+    <div class="who"><b>م. محمد شقور</b><span>البنيان في الرياضيات</span></div>
+    <button id="sound" type="button" aria-pressed="true">🔊 الصوت</button>
+  </header>
+  <div class="hud"><span class="drops" id="drops"></span><span style="font-weight:900;font-size:14px">غرفة التحكم 🎛️</span><div class="ms" id="ms"></div></div>
+  <div class="lab">
+    <div>
+      <div class="pumps"><span class="pump" id="pu1">المضخة 1 · <span class="m">10</span></span><span class="pump" id="pu2">المضخة 2 · <span class="m">+</span></span></div>
+      <div class="poolbox"><div class="tiles"></div><div class="water" id="water"></div><div class="spill" id="spill"></div><div class="l100"></div><span class="mk" style="top:4px">100</span><span class="mk" style="top:calc(50% - 18px)">50</span><div class="flag" id="flag">🌊 فاض الماء!</div></div>
+      <div class="read"><span class="t" id="rt">t = 0 h</span><span class="v" id="rv">V = 0 m³</span></div>
+    </div>
+    <div class="graph"><svg id="g" viewBox="0 0 360 250"></svg></div>
+  </div>
+  <div id="game" class="wrap" style="gap:14px"></div>
+  <footer>من أسئلة البنيان لرياضيات الحادي عشر · م. محمد شقور</footer>
+</div>
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const m = (t) => `<span class="m">${t}</span>`;
+  const T = '<i>t</i>', V = '<i>V</i>';
+  // الرسم البياني: t من 0 إلى 8، و V من 0 إلى 150
+  const GX = (t) => 40 + t * 38, GY = (v) => 220 - Math.min(v, 150) * 1.35;
+  const axes = () => {
+    let s = '';
+    for (let t = 0; t <= 8; t++) s += `<line x1="${GX(t)}" y1="${GY(0)}" x2="${GX(t)}" y2="${GY(150)}" stroke="#1b274214"/><text x="${GX(t)}" y="238" text-anchor="middle" class="gl">${t}</text>`;
+    for (let v = 0; v <= 150; v += 25) s += `<line x1="${GX(0)}" y1="${GY(v)}" x2="${GX(8)}" y2="${GY(v)}" stroke="#1b274214"/><text x="${GX(0) - 6}" y="${GY(v) + 4}" text-anchor="end" class="gl">${v}</text>`;
+    s += `<line x1="${GX(0)}" y1="${GY(100)}" x2="${GX(8)}" y2="${GY(100)}" stroke="#d32f2f" stroke-width="2" stroke-dasharray="6 4"/><text x="${GX(8)}" y="${GY(100) - 5}" text-anchor="start" style="font: 700 13px Cairo, sans-serif; direction: rtl" fill="#d32f2f">سعة المسبح</text>`;
+    s += `<line x1="${GX(0)}" y1="${GY(0)}" x2="${GX(8)}" y2="${GY(0)}" stroke="#1b2742" stroke-width="2"/><line x1="${GX(0)}" y1="${GY(0)}" x2="${GX(0)}" y2="${GY(150)}" stroke="#1b2742" stroke-width="2"/>`;
+    s += `<text x="${GX(8) + 6}" y="${GY(0) + 4}" class="gax">t</text><text x="${GX(0) - 4}" y="${GY(150) - 4}" class="gax" text-anchor="middle">V</text>`;
+    s += `<g id="keep"></g><polyline id="live" fill="none" stroke-width="4" stroke-linejoin="round" points=""/>`;
+    $('#g').innerHTML = s;
+  };
+  // المحاكاة: تحريك الزمن مع الماء والرسم
+  let anim = null;
+  const setPool = (t, v) => {
+    $('#rt').textContent = `t = ${(+t.toFixed(1))} h`; $('#rv').textContent = `V = ${Math.round(v)} m³`;
+    const w = $('#water'); w.style.height = Math.max(0, Math.min(v, 112)) + '%'; w.classList.toggle('flood', v > 100.5);
+    $('#spill').classList.toggle('on', v > 100.5); $('#flag').classList.toggle('on', v > 100.5);
+  };
+  const run = (f, t0, t1, color, keep, done) => {
+    cancelAnimationFrame(anim); const live = $('#live'); live.setAttribute('stroke', color); const pts = [];
+    const dur = (t1 - t0) * 450; let st = null;
+    const stepF = (ts) => {
+      if (st === null) st = ts; const k = Math.min(1, (ts - st) / dur), t = t0 + (t1 - t0) * k, v = f(t);
+      pts.push(`${GX(t).toFixed(1)},${GY(v).toFixed(1)}`); live.setAttribute('points', pts.join(' ')); setPool(t, v);
+      if (k < 1) anim = requestAnimationFrame(stepF);
+      else { if (keep) { const p = document.createElementNS('http://www.w3.org/2000/svg', 'polyline'); p.setAttribute('points', pts.join(' ')); p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#22c55e'); p.setAttribute('stroke-width', '4'); $('#keep').appendChild(p); live.setAttribute('points', ''); } done && done(); }
+    };
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { const v = f(t1); pts.push(`${GX(t0)},${GY(f(t0))}`, `${GX(t1)},${GY(v)}`); live.setAttribute('points', pts.join(' ')); setPool(t1, v); if (keep) { const p = live.cloneNode(); p.removeAttribute('id'); p.setAttribute('stroke', '#22c55e'); $('#keep').appendChild(p); live.setAttribute('points', ''); } done && done(); return; }
+    anim = requestAnimationFrame(stepF);
+  };
+  const pumps = (a, b) => { $('#pu1').classList.toggle('on', a); $('#pu2').classList.toggle('on', b); $('#pu2').querySelector('.m').textContent = b ? '15' : '+'; };
+
+  // الأصوات
+  let ac = null, soundOn = true;
+  const tone = (seq, type = 'triangle', vol = 0.1) => { if (!soundOn) return; try { ac = ac || new (window.AudioContext || window.webkitAudioContext)(); let t = ac.currentTime; seq.forEach(([f, d]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f; g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + d); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d); t += d * 0.85; }); } catch (e) {} };
+  const good = () => tone([[660, 0.1], [990, 0.16]]), bad = () => tone([[200, 0.3]], 'sawtooth', 0.07), splash = () => tone([[300, 0.08], [500, 0.08], [800, 0.2]], 'sine', 0.12), fan = () => tone([[392, 0.13], [523, 0.13], [659, 0.13], [784, 0.3]]);
+  $('#sound').addEventListener('click', (e) => { soundOn = !soundOn; e.currentTarget.textContent = soundOn ? '🔊 الصوت' : '🔇 بلا صوت'; e.currentTarget.setAttribute('aria-pressed', soundOn); });
+  const confetti = (n = 80) => { if (matchMedia('(prefers-reduced-motion: reduce)').matches) return; const cols = ['#29b6f6', '#ffc247', '#22c55e', '#fff', '#f07a2a']; for (let k = 0; k < n; k++) { const d = document.createElement('div'); d.className = 'conf'; d.style.left = Math.random() * 100 + 'vw'; d.style.background = cols[k % cols.length]; d.style.animationDuration = 1.4 + Math.random() * 1.6 + 's'; document.body.appendChild(d); setTimeout(() => d.remove(), 3500); } };
+
+  const f1 = (t) => 10 * t, f2 = (t) => 50 + 25 * (t - 5);
+  const DATA = `<div class="data">🏊 مسبح فارغ سعته ${m('100 m³')}. المضخة الأولى وحدها بمعدل ${m('10 m³/h')} لمدة ${m('5')} ساعات، ثم تعمل المضختان معًا بمعدل كلي ${m('25 m³/h')} حتى يمتلئ.</div>`;
+  // المهام: كل خيار خاطئ يعرض نتيجته في المحاكاة
+  const MS = [
+    { tag: 'المهمة 1 · المضخة الأولى', q: `المضخة الأولى تضخ ${m('10')} أمتار مكعبة كل ساعة. أي اقتران يعطي حجم الماء ${m(`${V}(${T})`)} خلال أول ${m('5')} ساعات؟`,
+      o: [[`${V} = 10${T}`, 1, ''], [`${V} = 10 + ${T}`, 0, `بعد ساعتين يكون الحجم ${m('10 + 2 = 12')}؟ لا! كل ساعة تضيف ${m('10')}، فالحجم <b>معدل × زمن</b>: ${m(`10 × 2 = 20`)}.`, (t) => 10 + t],
+          [`${V} = 5${T}`, 0, `${m('5')} هي <b>عدد الساعات</b>، لا المعدل. المعدل ${m('10')}.`, (t) => 5 * t], [`${V} = ${T} ÷ 10`, 0, `قسمة الزمن على المعدل لا تعطي حجمًا. الحجم = المعدل × الزمن.`, (t) => t / 10]],
+      ok: (done) => { pumps(true, false); run(f1, 0, 5, '#29b6f6', true, done); }, okTxt: `${m(`${V}(${T}) = 10${T}`)} عندما ${m(`0 ≤ ${T} ≤ 5`)}. شاهد المسبح والرسم!` },
+    { tag: 'المهمة 2 · لحظة التبديل', q: `عند ${m(`${T} = 5`)} تبدأ المضخة الثانية. كم مترًا مكعبًا في المسبح في هذه اللحظة؟`,
+      o: [['50', 1, ''], ['10', 0, `${m('10')} هو ما تضخه المضخة في <b>ساعة واحدة</b>. في ${m('5')} ساعات: ${m('10 × 5 = 50')}.`], ['15', 0, `جمعت ${m('10 + 5')}. الحجم ضرب: ${m('10 × 5 = 50')}.`], ['25', 0, `${m('25')} هو معدل المضختين معًا، ولم تبدأ الثانية بعد.`]],
+      ok: (done) => done(), okTxt: `${m(`${V}(5) = 50`)}: نصف المسبح ممتلئ، وهذه <b>نقطة البداية</b> للمرحلة الثانية.` },
+    { tag: 'المهمة 3 · المضخة الثانية', q: `بعد ${m(`${T} = 5`)} يصبح المعدل ${m('25')}. أي اقتران يعطي الحجم في المرحلة الثانية؟ (جرّب، وراقب المسبح!)`,
+      o: [[`${V} = 50 + 25(${T} − 5)`, 1, ''], [`${V} = 25${T}`, 0, `هذا الاقتران يبدأ من الصفر وكأن المسبح كان فارغًا! لكن فيه ${m('50')} مترًا مكعبًا عند ${m(`${T} = 5`)}، ومنها ننطلق.`, (t) => 25 * t],
+          [`${V} = 50 + 25${T}`, 0, `الماء فاض! ${m(T)} هنا هو الزمن من البداية، والمضخة الثانية بدأت عند الساعة ${m('5')}، فالساعات الجديدة هي ${m(`${T} − 5`)}.`, (t) => 50 + 25 * t],
+          [`${V} = 50 + 35(${T} − 5)`, 0, `${m('25')} هو <b>المعدل الكلي للمضختين معًا</b>، فلا نضيف ${m('10')} مرة ثانية.`, (t) => 50 + 35 * (t - 5)]],
+      wr: [5, 7], ok: (done) => { pumps(true, true); run(f2, 5, 7, '#29b6f6', true, done); }, okTxt: `${m(`${V}(${T}) = 50 + 25(${T} − 5)`)} عندما ${m(`5 &lt; ${T} ≤ 7`)}: نبدأ من ${m('50')}، ونضيف ${m('25')} لكل ساعة بعد الساعة ${m('5')}.` },
+    { tag: 'المهمة 4 · متى يمتلئ؟', q: `حل المعادلة ${m(`50 + 25(${T} − 5) = 100`)}. متى يمتلئ المسبح؟`,
+      o: [[`${T} = 7`, 1, ''], [`${T} = 4`, 0, `${m('100 ÷ 25 = 4')} يهمل المرحلة الأولى كلها. المسبح لم يُملأ بمعدل ${m('25')} من البداية.`], [`${T} = 2`, 0, `${m('2')} هي مدة المرحلة الثانية فقط: ${m(`25(${T} − 5) = 50`)}. الزمن الكلي: ${m('5 + 2 = 7')}.`], [`${T} = 10`, 0, `${m('100 ÷ 10 = 10')}: هذا لو عملت المضخة الأولى وحدها طوال الوقت.`]],
+      ok: (done) => { splash(); confetti(50); done(); }, okTxt: `${m(`25(${T} − 5) = 50 ⇒ ${T} − 5 = 2 ⇒ ${T} = 7`)} ساعات.` },
+    { tag: 'المهمة 5 · المجال الفعلي', q: `ما المجال الفعلي للاقتران ${m(`${V}(${T})`)}؟`,
+      o: [['[0 , 7]', 1, ''], ['[0 , ∞)', 0, `بعد ${m(`${T} = 7`)} يمتلئ المسبح ويتوقف الضخ، فالاقتران لا يصف ما بعدها: المسبح لا يتسع لأكثر من ${m('100')}.`, (t) => (t <= 5 ? f1(t) : f2(t))], ['[0 , 5]', 0, `هذا مجال القطعة الأولى فقط. الضخ يستمر حتى ${m('7')}.`], ['[5 , 7]', 0, `هذا مجال القطعة الثانية فقط. الزمن يبدأ من ${m('0')}.`]],
+      wr: [0, 8], ok: (done) => done(), okTxt: `المجال: ${m('[0 , 7]')}، يبدأ من لحظة التشغيل وينتهي عند الامتلاء.` },
+  ];
+  let k = 0, drops = 3, miss = 0;
+  const hud = () => {
+    $('#drops').innerHTML = [1, 2, 3].map((n) => `<span class="${n <= drops ? '' : 'off'}">💧</span>`).join('');
+    $('#ms').innerHTML = MS.map((_, n) => `<span class="mc ${n < k ? 'done' : n === k ? 'now' : ''}">${n + 1}</span>`).join('');
+  };
+  const intro = () => {
+    axes(); setPool(0, 0); pumps(false, false); k = -1; hud();
+    $('#game').innerHTML = `<div class="intro"><h1>غرفة التحكم <em>بالمسبح</em> 🎛️</h1>
+      <p>أنت مهندس المسبح. ابنِ الاقتران المتشعب قطعة قطعة، وشاهد أثر كل اختيار على الماء والرسم.</p>
+      ${DATA}
+      <div class="how">
+        <div><b class="n">1</b><span>في كل مهمة سؤال وأربعة خيارات.</span></div>
+        <div><b class="n">2</b><span>الخيار الصحيح يشغّل المحاكاة: يرتفع الماء، ويُرسم ${m(`${V}(${T})`)} بالأخضر.</span></div>
+        <div><b class="n">3</b><span>الخيار الخاطئ يعرض <b>نتيجته</b> بالأحمر: قد يفيض الماء 🌊 أو يعود المسبح فارغًا، وتقرأ سبب الخطأ.</span></div>
+        <div><b class="n">4</b><span>خمس مهام: المضخة الأولى، لحظة التبديل، المضخة الثانية، متى يمتلئ، والمجال الفعلي.</span></div>
+      </div>
+      <div class="lose">⚠️ <b>يمكنك أن تخسر!</b> معك ثلاث قطرات 💧، وكل خطأ يُفقدك قطرة. إذا نفدت القطرات، يُغلق المسبح وتبدأ من جديد.</div>
+      <button type="button" class="btn big" id="go">▶ شغّل غرفة التحكم</button></div>`;
+    $('#go').addEventListener('click', () => { splash(); mission(0); });
+  };
+  const mission = (n) => {
+    k = n; hud(); const o = MS[k];
+    $('#game').innerHTML = `<div class="card"><span class="tag">${o.tag}</span><p>${o.q}</p><div class="opts" id="opts"></div><div id="fb"></div></div>`;
+    const box = $('#opts'), fb = $('#fb');
+    o.o.forEach(([lab, ok, why, wf], i) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.innerHTML = m(lab); b.dataset.i = i; b.style.order = (i * 5 + k * 3) % 4;
+      b.addEventListener('click', () => {
+        if (ok) {
+          box.querySelectorAll('.opt').forEach((x) => (x.disabled = true)); b.classList.add('ok'); good();
+          fb.className = 'fb ok'; fb.innerHTML = `<b>✓ صحيح.</b> ${o.okTxt}`;
+          o.ok(() => { const nx = document.createElement('button'); nx.type = 'button'; nx.className = 'btn'; nx.id = 'nx'; nx.textContent = k < MS.length - 1 ? 'المهمة التالية ←' : '🏆 النتيجة'; nx.addEventListener('click', () => (k < MS.length - 1 ? mission(k + 1) : finish())); fb.after(nx); });
+        } else {
+          b.disabled = true; b.classList.add('no'); bad(); drops--; miss++; hud();
+          fb.className = 'fb no'; fb.innerHTML = `<b>✗ خطأ في الفهم:</b> ${why}`;
+          if (wf) { const [a, z] = o.wr || [0, 5]; run(wf, a, z, '#ef4444', false, () => {}); }
+          if (drops <= 0) setTimeout(over, 1400);
+        }
+      });
+      box.appendChild(b);
+    });
+    window.__ok = o.o.findIndex((q) => q[1]);
+  };
+  const over = () => {
+    cancelAnimationFrame(anim);
+    $('#game').innerHTML = `<div class="card" style="text-align:center;align-items:center"><div style="font-size:64px">🚫</div><h2>نفدت القطرات! أُغلق المسبح</h2><p>راجع أسباب الأخطاء، ثم أعد المحاولة.</p><button type="button" class="btn big" id="again">↺ ابدأ من جديد</button></div>`;
+    $('#again').addEventListener('click', () => { drops = 3; miss = 0; intro(); });
+  };
+  const finish = () => {
+    k = MS.length; hud(); fan(); confetti(130);
+    const stars = miss === 0 ? 3 : miss === 1 ? 2 : 1;
+    let rec = 0; try { rec = +localStorage.getItem('bunyan-pool') || 0; if (stars > rec) localStorage.setItem('bunyan-pool', stars); } catch (e) {}
+    $('#game').innerHTML = `<div class="card" style="align-items:center;text-align:center"><div style="font-size:64px">🏆</div><h2>مهندس المسبح!</h2>
+      <div class="stars">${[1, 2, 3].map((n) => `<span class="${n <= stars ? '' : 'off'}">⭐</span>`).join('')}</div>
+      <div class="final">${m(`${V}(${T}) = 10${T}`)} &nbsp;، &nbsp;${m(`0 ≤ ${T} ≤ 5`)}<br>${m(`${V}(${T}) = 50 + 25(${T} − 5)`)} &nbsp;، &nbsp;${m(`5 &lt; ${T} ≤ 7`)}<br>يمتلئ بعد ${m('7')} ساعات · المجال ${m('[0 , 7]')}</div>
+      <p style="text-align:start"><b>تذكّر:</b> الحجم = المعدل × الزمن. القطعة الثانية تبدأ من الحجم الموجود ${m('50')}، وزمنها ${m(`${T} − 5`)}. والمجال الفعلي ينتهي عند الامتلاء.</p>
+      <p>${stars > rec ? '🎉 رقم قياسي جديد!' : `أفضل نتيجة لك: ${'⭐'.repeat(rec)}`} · 📸 صوّر نتيجتك وشاركها في التعليقات!</p>
+      <button type="button" class="btn big" id="again">↺ العب من جديد</button></div>`;
+    $('#again').addEventListener('click', () => { drops = 3; miss = 0; intro(); });
+  };
+  intro();
+})();
+</script>
+</body>
+</html>
