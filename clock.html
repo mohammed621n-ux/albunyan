@@ -1,0 +1,374 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ورشة الساعات</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&family=Orbitron:wght@700;900&display=swap">
+<style>
+  /* ورشة ساعاتي: كل ساعة معطلة تحتاج ثلاثة إصلاحات: الزاوية، ثم نقل الشريحة إلى المستوى الإحداثي، ثم الزاوية الموجبة المشتركة */
+  :root {
+    --wall: #efe2c8; --wood: #6b4423; --wood-d: #3b2412; --ink: #2b2118; --navy: #13284a; --paper: #fffdf6;
+    --orange: #f07a2a; --gold: #ffc247; --blue: #1565ff; --red: #e8112d; --cyan: #0aa5c9;
+    --good: #22c55e; --good-soft: #dcfce7; --bad: #ef4444; --bad-soft: #fee2e2; --muted: #6d5d4b;
+    --f-ar: "Cairo", "Segoe UI", Tahoma, sans-serif; --f-m: "STIX Two Text", "Cambria Math", "Times New Roman", serif; --f-led: "Orbitron", "Cairo", monospace;
+    color-scheme: light;
+  }
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  body { margin: 0; font-family: var(--f-ar); color: var(--ink); direction: rtl;
+    background: repeating-linear-gradient(90deg, #e7d6b6 0 2px, transparent 2px 56px), radial-gradient(ellipse at 40% 20%, #f8eedb, #e3cfab 75%) fixed; background-color: var(--wall);
+    padding: 14px max(14px, env(safe-area-inset-right, 0px)) 40px max(14px, env(safe-area-inset-left, 0px)); }
+  .wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .m { font-family: var(--f-m); direction: ltr; unicode-bidi: isolate; white-space: nowrap; font-size: 1.08em; }
+  header { display: flex; align-items: center; gap: 10px; }
+  header img { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--orange); }
+  .who b { display: block; font-size: 16px; font-weight: 900; } .who span { font-size: 12px; color: #b9581a; font-weight: 800; }
+  #sound { margin-inline-start: auto; font: inherit; font-size: 13px; color: var(--ink); background: #fff8; border: 1px solid #0002; border-radius: 20px; padding: 4px 12px; cursor: pointer; }
+  .hud { display: flex; align-items: center; gap: 10px; background: var(--navy); color: #fff; border-radius: 14px; padding: 8px 12px; flex-wrap: wrap; }
+  .tools { font-size: 20px; letter-spacing: 2px; } .tools .off { filter: grayscale(1); opacity: 0.25; }
+  .score { font-family: var(--f-led); color: var(--gold); font-size: 16px; direction: ltr; }
+  .ms { display: flex; gap: 5px; margin-inline-start: auto; }
+  .mc { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 900; background: #ffffff1c; color: #cde; border: 2px solid transparent; }
+  .mc.now { border-color: var(--gold); color: #fff; } .mc.done { background: var(--good); color: #fff; } .mc.lost { background: var(--bad); color: #fff; }
+  .timer { height: 8px; border-radius: 6px; background: #0001; overflow: hidden; }
+  .timer i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--bad), var(--gold), var(--good)); transform-origin: right; }
+
+  .bench { position: relative; background: linear-gradient(#8a5a33, #5e3a1e); border-radius: 22px; padding: 12px; box-shadow: 0 10px 0 var(--wood-d); }
+  .bench svg { width: 100%; max-width: 420px; display: block; margin: 0 auto; touch-action: manipulation; }
+  .brow { display: flex; justify-content: space-between; align-items: stretch; gap: 10px; margin-bottom: 10px; }
+  .tag { background: var(--paper); border-radius: 14px; padding: 4px 12px; text-align: center; box-shadow: 0 4px 0 #0003; flex: 1; }
+  .tag small { display: block; font-size: 11px; color: var(--muted); font-weight: 800; } .tag b { font-size: 17px; display: block; line-height: 1.4; }
+  .readout { min-width: 96px; background: var(--navy); color: var(--gold); border-radius: 14px; padding: 4px 12px; text-align: center; }
+  .readout small { display: block; font-size: 11px; color: #cde; font-weight: 800; } .readout b { font-family: var(--f-m); font-size: 22px; direction: ltr; display: block; }
+  .cn { font: 700 22px var(--f-m); fill: var(--ink); pointer-events: none; }
+  .ax { font: italic 20px var(--f-m); fill: var(--ink); pointer-events: none; }
+  .ql { font: 700 16px var(--f-m); fill: #2b211855; pointer-events: none; }
+  .zone { fill: #f07a2a00; transition: fill 0.2s; } .pick .zone { cursor: pointer; } .pick .zone:hover, .pick .zone:focus { fill: #f07a2a33; outline: none; }
+  .axz { stroke: #13284a00; stroke-width: 30; stroke-linecap: round; transition: stroke 0.2s; } .pick .axz { cursor: pointer; } .pick .axz:hover, .pick .axz:focus { stroke: #13284a33; outline: none; }
+  .zone.ok { fill: #22c55e55; } .zone.bad { fill: #ef444466; } .axz.ok { stroke: #22c55e88; } .axz.bad { stroke: #ef444488; }
+  .lbl { font: 900 14px var(--f-ar); fill: #fff; direction: rtl; unicode-bidi: plaintext; pointer-events: none; }
+
+  .card { background: var(--paper); color: var(--ink); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; animation: up 0.3s ease; box-shadow: 0 6px 18px #3b241222; }
+  @keyframes up { from { opacity: 0; transform: translateY(14px); } }
+  .card h2 { margin: 0; font-size: 19px; font-weight: 900; } .card p { margin: 0; line-height: 1.85; font-size: 15.5px; }
+  .card h1 { margin: 0; font-size: 28px; font-weight: 900; color: var(--wood); }
+  .steps { display: flex; gap: 6px; } .st { flex: 1; text-align: center; font-size: 12.5px; font-weight: 900; padding: 4px; border-radius: 10px; background: #efe6d6; color: var(--muted); }
+  .st.now { background: var(--orange); color: #fff; } .st.ok { background: var(--good); color: #fff; } .st.bad { background: var(--bad); color: #fff; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .opt { font: inherit; font-size: 17px; font-weight: 900; padding: 14px 8px; border-radius: 14px; border: 2px solid #d9c8a8; background: #fff; color: var(--ink); cursor: pointer; transition: transform 0.12s; }
+  .opt:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--orange); }
+  .opt:disabled { cursor: default; opacity: 0.6; } .opt.ok { background: var(--good-soft); border-color: var(--good); opacity: 1; } .opt.bad { background: var(--bad-soft); border-color: var(--bad); opacity: 1; }
+  .opt .m { font-size: 24px; }
+  .fb { border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.8; font-weight: 700; }
+  .fb.ok { background: var(--good-soft); color: #14532d; } .fb.bad { background: var(--bad-soft); color: #7f1d1d; }
+  .go { font: inherit; font-size: 18px; font-weight: 900; color: #fff; background: var(--orange); border: 0; border-radius: 16px; padding: 12px 20px; cursor: pointer; box-shadow: 0 6px 0 #b9581a; }
+  .go:active { transform: translateY(3px); box-shadow: 0 3px 0 #b9581a; }
+  ol.how { margin: 0; padding-inline-start: 22px; line-height: 1.9; font-size: 15.5px; }
+  .warn { background: #fff4e5; border: 2px dashed var(--orange); border-radius: 12px; padding: 8px 12px; font-weight: 800; font-size: 14.5px; line-height: 1.8; }
+  .rule { background: #13284a; color: #fff; border-radius: 12px; padding: 8px 12px; font-size: 14.5px; line-height: 1.9; font-weight: 700; }
+  .rule .m { color: var(--gold); }
+  .stars { font-size: 44px; text-align: center; letter-spacing: 6px; } .stars .off { filter: grayscale(1); opacity: 0.25; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 14.5px; } .tbl td { padding: 6px; border-bottom: 1px solid #eadfcb; }
+  footer { text-align: center; font-size: 12px; color: var(--muted); padding-top: 6px; }
+  .shake { animation: shk 0.35s 2; } @keyframes shk { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  @media (prefers-reduced-motion: reduce) { .card, .shake { animation: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img alt="شعار البنيان" src="data:image/jpeg;base64,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">
+    <div class="who"><b>م. محمد شقور</b><span>البنيان في الرياضيات</span></div>
+    <button id="sound" type="button" aria-pressed="true">🔊 الصوت</button>
+  </header>
+  <div class="hud"><span class="tools" id="tools" aria-label="المفكات"></span><span class="score" id="score">0</span><div class="ms" id="ms"></div></div>
+  <div class="timer" aria-hidden="true"><i id="tbar"></i></div>
+  <div class="bench">
+    <div class="brow"><div class="tag"><small>الطلب</small><b id="job">—</b></div><div class="readout"><small id="rl">الدقائق</small><b id="rv">0</b></div></div>
+    <svg id="sv" viewBox="0 0 400 400" role="img" aria-label="الساعة والمستوى الإحداثي"></svg>
+  </div>
+  <div id="game" class="wrap" style="gap:12px"></div>
+  <footer>من أسئلة البنيان لرياضيات الحادي عشر · م. محمد شقور</footer>
+</div>
+<script>
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const m = (t) => `<span class="m">${t}</span>`;
+  const deg = (a) => (a < 0 ? '−' + -a : '' + a) + '°';
+  const C = 200, R = 150;
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let store = null; try { store = window.localStorage; } catch (e) {}
+  const getRec = () => { try { return +(store && store.getItem('albunyan-clock-rec')) || 0; } catch (e) { return 0; } };
+  const setRec = (v) => { try { store && store.setItem('albunyan-clock-rec', String(v)); } catch (e) {} };
+
+  // ——— الصوت ———
+  let ac = null, soundOn = true;
+  const beep = (f, d = 0.12, type = 'sine', v = 0.15, at = 0) => {
+    if (!soundOn) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + at;
+      o.type = type; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t + d);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + 0.02);
+    } catch (e) {}
+  };
+  const S = {
+    tick: () => beep(1800, 0.025, 'square', 0.05),
+    ok: () => { beep(660, 0.1, 'triangle'); beep(990, 0.16, 'triangle', 0.15, 0.09); },
+    bad: () => { beep(180, 0.3, 'sawtooth', 0.12); beep(140, 0.3, 'sawtooth', 0.1, 0.12); },
+    bell: () => { beep(880, 0.6, 'sine', 0.12); beep(1320, 0.5, 'sine', 0.06, 0.02); },
+    win: () => [523, 659, 784, 1046].forEach((f, i) => beep(f, 0.22, 'triangle', 0.15, i * 0.12)),
+    lose: () => [392, 330, 262, 196].forEach((f, i) => beep(f, 0.28, 'sawtooth', 0.09, i * 0.16)),
+  };
+  $('#sound').onclick = (e) => { soundOn = !soundOn; e.currentTarget.textContent = soundOn ? '🔊 الصوت' : '🔇 الصوت'; e.currentTarget.setAttribute('aria-pressed', soundOn); };
+
+  // ——— الرسم ———
+  const ck = (phi, r) => [C + r * Math.sin(phi * Math.PI / 180), C - r * Math.cos(phi * Math.PI / 180)];   // من 12 مع عقارب الساعة
+  const mp = (a, r) => [C + r * Math.cos(a * Math.PI / 180), C - r * Math.sin(a * Math.PI / 180)];         // زاوية رياضية
+  const P = (p) => p[0].toFixed(1) + ' ' + p[1].toFixed(1);
+  const ZONES = [
+    { id: 'Q1', ar: 'داخل الربع الأول', q: true, a: 45 }, { id: 'Q2', ar: 'داخل الربع الثاني', q: true, a: 135 },
+    { id: 'Q3', ar: 'داخل الربع الثالث', q: true, a: 225 }, { id: 'Q4', ar: 'داخل الربع الرابع', q: true, a: 315 },
+    { id: 'A0', ar: 'على محور x الموجب', a: 0 }, { id: 'A90', ar: 'على محور y الموجب', a: 90 },
+    { id: 'A180', ar: 'على محور x السالب', a: 180 }, { id: 'A270', ar: 'على محور y السالب', a: 270 },
+  ];
+  const zoneOf = (c) => (c % 90 === 0 ? 'A' + c : 'Q' + (Math.floor(c / 90) + 1));
+  const wedgeD = (phi) => {
+    if (phi <= 0) return '';
+    if (phi >= 360) return `M${C} ${C - R + 4} A${R - 4} ${R - 4} 0 1 1 ${C - 0.01} ${C - R + 4} Z`;
+    return `M${C} ${C} L${P(ck(0, R - 4))} A${R - 4} ${R - 4} 0 ${phi > 180 ? 1 : 0} 1 ${P(ck(phi, R - 4))} Z`;
+  };
+  const draw = () => {
+    let s = `<defs><radialGradient id="dial" cx="45%" cy="40%" r="65%"><stop offset="0" stop-color="#fffdf6"/><stop offset="1" stop-color="#efe4cf"/></radialGradient></defs>`;
+    s += `<g id="face"><circle cx="${C}" cy="${C}" r="${R + 22}" fill="#6b4423" stroke="#3b2412" stroke-width="4"/><circle cx="${C}" cy="${C}" r="${R}" fill="url(#dial)" stroke="#3b2412" stroke-width="3"/>`;
+    for (let k = 0; k < 60; k++) { const a = ck(k * 6, R - (k % 5 ? 7 : 14)), b = ck(k * 6, R - 2); s += `<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" stroke="#2b2118" stroke-width="${k % 5 ? 1.2 : 3}"/>`; }
+    for (let h = 1; h <= 12; h++) { const p = ck(h * 30, R - 32); s += `<text class="cn" x="${p[0]}" y="${p[1] + 8}" text-anchor="middle">${h}</text>`; }
+    s += `</g>`;
+    s += `<g id="plane" opacity="0"><rect x="0" y="0" width="400" height="400" rx="16" fill="#fffdf6"/>`;
+    s += `<g id="zones">`;
+    ZONES.filter((z) => z.q).forEach((z) => { const a = mp(z.a - 45, 185), b = mp(z.a + 45, 185); s += `<path class="zone" data-z="${z.id}" tabindex="-1" role="button" aria-label="${z.ar}" d="M${C} ${C} L${P(a)} A185 185 0 0 0 ${P(b)} Z"/>`; });
+    s += `</g><line x1="12" y1="${C}" x2="388" y2="${C}" stroke="#2b2118" stroke-width="2.5"/><line x1="${C}" y1="388" x2="${C}" y2="12" stroke="#2b2118" stroke-width="2.5"/>`;
+    s += `<text class="ax" x="378" y="${C + 24}">x</text><text class="ax" x="${C + 8}" y="26">y</text>`;
+    [['I', 45], ['II', 135], ['III', 225], ['IV', 315]].forEach(([t, a]) => { const p = mp(a, 120); s += `<text class="ql" x="${p[0]}" y="${p[1]}" text-anchor="middle">${t}</text>`; });
+    s += `<g id="axz">`;
+    ZONES.filter((z) => !z.q).forEach((z) => { const a = mp(z.a, 26), b = mp(z.a, 176); s += `<line class="axz" data-z="${z.id}" tabindex="-1" role="button" aria-label="${z.ar}" x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}"/>`; });
+    s += `</g></g>`;
+    s += `<g id="slice"><path id="wedge" fill="#f07a2a" fill-opacity="0.35" d=""/>`;
+    s += `<g id="sides" opacity="0"><line x1="${C}" y1="${C}" x2="${C}" y2="${C - R - 14}" stroke="#fff" stroke-width="12" stroke-linecap="round"/><line x1="${C}" y1="${C}" x2="${C}" y2="${C - R - 14}" stroke="#1565ff" stroke-width="7" stroke-linecap="round"/>`;
+    s += `<g id="term"><line x1="${C}" y1="${C}" x2="${C}" y2="${C - R - 14}" stroke="#fff" stroke-width="12" stroke-linecap="round"/><line x1="${C}" y1="${C}" x2="${C}" y2="${C - R - 14}" stroke="#e8112d" stroke-width="7" stroke-linecap="round"/></g></g></g>`;
+    s += `<g id="hands"><line id="hh" x1="${C}" y1="${C + 14}" x2="${C}" y2="${C - 80}" stroke="#2b2118" stroke-width="9" stroke-linecap="round"/>`;
+    s += `<line id="mh" x1="${C}" y1="${C + 18}" x2="${C}" y2="${C - 128}" stroke="#2b2118" stroke-width="5" stroke-linecap="round"/><circle cx="${C}" cy="${C}" r="8" fill="#2b2118"/><circle cx="${C}" cy="${C}" r="3" fill="#d32f2f"/></g>`;
+    s += `<path id="cot" fill="none" stroke="#0aa5c9" stroke-width="5" d=""/>`;
+    s += `<g id="lb" opacity="0"><rect id="lbr" rx="10" height="30" width="96" fill="#e8112d"/><text id="lbt" class="lbl" text-anchor="middle"></text></g>`;
+    $('#sv').innerHTML = s;
+  };
+  const rot = (sel, a) => $(sel).setAttribute('transform', `rotate(${a} ${C} ${C})`);
+  const anim = (dur, fn, done) => {
+    if (reduce) { fn(1); return done && done(); }
+    const t0 = performance.now();
+    const step = (now) => { const k = Math.min(1, (now - t0) / dur); fn(k); if (k < 1) requestAnimationFrame(step); else done && done(); };
+    requestAnimationFrame(step);
+  };
+
+  // ——— المهام ———
+  // kind: min = عقرب الدقائق (6° لكل دقيقة) · hr = عقرب الساعات (30° لكل ساعة)
+  const STAGES = [
+    { name: 'المتدرّب', list: [{ k: 'min', n: 20 }, { k: 'min', n: 15 }, { k: 'min', n: 10 }] },
+    { name: 'الصانع', list: [{ k: 'min', n: 45 }, { k: 'min', n: 35 }, { k: 'min', n: 50 }] },
+    { name: 'المعلّم', list: [{ k: 'min', n: 75 }, { k: 'hr', n: 5 }, { k: 'min', n: 90 }] },
+  ];
+  const ALL = STAGES.flatMap((s, i) => s.list.map((t) => ({ ...t, st: i })));
+  const rate = (t) => (t.k === 'min' ? 6 : 30);
+  const theta = (t) => -t.n * rate(t);
+  const coterm = (a) => ((a % 360) + 360) % 360;
+  const jobTxt = (t) => (t.k === 'min' ? `عقرب الدقائق: ${m(t.n)} دقيقة` : `عقرب الساعات: ${m(t.n)} ساعات`);
+  const TIME = 35;
+  let idx = 0, tools = 3, score = 0, step = 0, timer = null, left = TIME, mist = { ang: 0, sgn: 0, loc: 0, cot: 0 }, res = [];
+
+  const hud = () => {
+    $('#tools').innerHTML = [0, 1, 2].map((i) => `<span class="${i < tools ? '' : 'off'}">🔧</span>`).join('');
+    $('#score').textContent = score;
+    $('#ms').innerHTML = ALL.map((_, i) => `<span class="mc ${res[i] === 1 ? 'done' : res[i] === 0 ? 'lost' : i === idx ? 'now' : ''}">${i + 1}</span>`).join('');
+  };
+  const stopTimer = () => { clearInterval(timer); timer = null; };
+  const startTimer = () => {
+    stopTimer(); left = TIME; $('#tbar').style.transform = 'scaleX(1)';
+    timer = setInterval(() => {
+      left -= 0.1; $('#tbar').style.transform = `scaleX(${Math.max(0, left / TIME)})`;
+      if (left <= 8 && Math.abs(left - Math.round(left)) < 0.05) S.tick();
+      if (left <= 0) { stopTimer(); timeout(); }
+    }, 100);
+  };
+  const lose1 = () => { tools--; hud(); const b = $('.bench'); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); };
+  const g = $('#game');
+  const stepsBar = () => `<div class="steps">${['① زاوية الدوران', '② ضلع الانتهاء', '③ الزاوية الموجبة'].map((t, i) => `<span class="st ${i < step ? 'ok' : i === step ? 'now' : ''}">${t}</span>`).join('')}</div>`;
+  const card = (title, body) => { g.innerHTML = `<div class="card">${stepsBar()}<h2>${title}</h2>${body}</div>`; };
+
+  // الساعة: يدور العقرب ويمتلئ الوتد
+  const runClock = (t, done) => {
+    const tot = t.n * rate(t), steps = t.n;
+    $('#rl').textContent = t.k === 'min' ? 'الدقائق' : 'الساعات'; $('#rv').textContent = '0';
+    const hand = t.k === 'min' ? '#mh' : '#hh';
+    rot('#hh', t.k === 'min' ? 300 : 0); rot('#mh', 0);
+    let last = 0;
+    anim(Math.min(3200, 900 + tot * 4), (k) => {
+      const a = tot * k; rot(hand, (t.k === 'min' ? 0 : 0) + a);
+      if (t.k === 'min') rot('#hh', 300 + a / 12);
+      $('#wedge').setAttribute('d', wedgeD(a >= 360 ? (a % 360 === 0 ? 360 : a % 360) : a));
+      const u = Math.floor(steps * k); if (u !== last) { last = u; $('#rv').textContent = u; if (t.k === 'hr' || u % 5 === 0) S.tick(); }
+    }, () => { $('#rv').textContent = steps; done && done(); });
+  };
+
+  const intro = () => {
+    stopTimer(); draw(); $('#job').innerHTML = '—';
+    idx = 0; tools = 3; score = 0; res = []; mist = { ang: 0, sgn: 0, loc: 0, cot: 0 }; hud();
+    const rec = getRec();
+    g.innerHTML = `<div class="card"><h1>🕰️ ورشة الساعات</h1>
+      <p>أنت صانع ساعات! في كل طلب يتحرك عقرب من الرقم ${m('12')}، وعليك أن تحوّل حركته إلى زاوية، ثم تنقل «شريحة» الزاوية من الساعة إلى المستوى الإحداثي في <b>الوضع القياسي</b>.</p>
+      <div class="rule">🔑 عقرب الدقائق: ${m('360° ÷ 60 = 6°')} لكل دقيقة · عقرب الساعات: ${m('360° ÷ 12 = 30°')} لكل ساعة · العقارب تدور <b>مع</b> عقارب الساعة ⇐ الزاوية <b>سالبة</b>.</div>
+      <h2>كيف تلعب؟</h2>
+      <ol class="how"><li><b>زاوية الدوران:</b> شاهد العقرب، ثم اختر قياس زاوية دورانه بإشارتها الصحيحة.</li>
+      <li><b>ضلع الانتهاء:</b> تتحول الساعة إلى مستوى إحداثي، والضلع الابتدائي على محور ${m('<i>x</i>')} الموجب. اضغط أين يقف ضلع الانتهاء: داخل ربع، أو على محور.</li>
+      <li><b>الزاوية الموجبة:</b> اختر أصغر زاوية موجبة تشترك معها في ضلع الانتهاء.</li></ol>
+      <div class="warn">⚠️ يمكنك أن تخسر! معك ${m('3')} مفكات 🔧. كل خطأ أو انتهاء الوقت (${m(TIME + ' ث')}) يكلّفك مفكًا، وإذا نفدت أُغلقت الورشة.</div>
+      <p>تسع ساعات في ثلاث مراحل: <b>المتدرّب</b> ← <b>الصانع</b> ← <b>المعلّم</b>. ${rec ? `أفضل نتيجة لك: <b class="m">${rec}</b>` : ''}</p>
+      <button class="go" id="start">افتح الورشة 🔧</button></div>`;
+    $('#start').onclick = () => { S.bell(); next(); };
+  };
+
+  const next = () => {
+    if (idx >= ALL.length) return end(true);
+    step = 0; hud(); draw();
+    const t = ALL[idx]; $('#job').innerHTML = jobTxt(t);
+    if (idx === 0 || ALL[idx - 1].st !== t.st) {
+      const msg = ['زوايا أقل من نصف دورة.', 'عقارب تتجاوز نصف الدورة.', 'أكثر من دورة، وعقرب الساعات أيضًا!'][t.st];
+      g.innerHTML = `<div class="card" style="text-align:center"><h2>المرحلة ${t.st + 1}: ${STAGES[t.st].name}</h2><p>${msg}</p><button class="go" id="gost">جاهز ✔</button></div>`;
+      $('#gost').onclick = () => start();
+    } else start();
+  };
+  const start = () => { g.innerHTML = `<div class="card"><h2>⏱️ راقب العقرب…</h2></div>`; runClock(ALL[idx], askAng); };
+
+  const angOpts = (t) => {
+    const th = theta(t), set = [th], add = (v) => { if (!set.includes(v) && v !== 0) set.push(v); };
+    add(-th); add(t.k === 'min' ? -t.n : -t.n * 6); add(t.k === 'min' ? -t.n * 30 : -t.n); add(-coterm(th)); add(th + 360);
+    const o = set.slice(0, 4); for (let i = o.length - 1; i > 0; i--) { const j = (i * 5 + idx * 3) % (i + 1); [o[i], o[j]] = [o[j], o[i]]; }
+    return o;
+  };
+  const askAng = () => {
+    const t = ALL[idx], th = theta(t); step = 0; startTimer();
+    card(`${jobTxt(t)}. ما قياس زاوية الدوران؟`, `<div class="opts">${angOpts(t).map((v) => `<button class="opt" data-v="${v}">${m(deg(v))}</button>`).join('')}</div><div id="fb"></div>`);
+    g.querySelectorAll('.opt').forEach((b) => (b.onclick = () => {
+      stopTimer(); g.querySelectorAll('.opt').forEach((x) => (x.disabled = true));
+      g.querySelector(`.opt[data-v="${th}"]`).classList.add('ok');
+      const v = +b.dataset.v, why = `${m(`${t.n} × ${rate(t)}° = ${-th}°`)}، والدوران مع عقارب الساعة ⇐ ${m(deg(th))}`;
+      if (v === th) { S.ok(); score += 100; hud(); $('#fb').innerHTML = `<div class="fb ok">✓ ${why}</div><button class="go" id="cont">انقل الشريحة ⟵</button>`; $('#cont').onclick = askLoc; }
+      else {
+        S.bad(); b.classList.add('bad'); lose1();
+        let tip;
+        if (v === -th) { tip = 'المقدار صحيح، لكن الإشارة خطأ: العقارب تدور مع عقارب الساعة، فالزاوية سالبة.'; mist.sgn++; }
+        else if (v === -t.n) { tip = `هذا عدد ${t.k === 'min' ? 'الدقائق' : 'الساعات'} وليس الدرجات: اضرب في ${m(rate(t) + '°')}.`; mist.ang++; }
+        else if (t.k === 'min' && v === -t.n * 30) { tip = `${m('30°')} هي سرعة عقرب <b>الساعات</b>؛ عقرب الدقائق ${m('6°')} لكل دقيقة.`; mist.ang++; }
+        else if (t.k === 'hr' && v === -t.n * 6) { tip = `${m('6°')} سرعة عقرب <b>الدقائق</b>؛ عقرب الساعات ${m('30°')} لكل ساعة (${m('360 ÷ 12')}).`; mist.ang++; }
+        else { tip = 'هذه زاوية تشترك معها في ضلع الانتهاء، لكنها ليست زاوية الدوران الفعلية التي قطعها العقرب.'; mist.ang++; }
+        $('#fb').innerHTML = `<div class="fb bad">✗ ${tip}<br>الصحيح: ${why}</div><button class="go" id="cont">تابع</button>`;
+        if (tools <= 0) return setTimeout(() => end(false), 1500);
+        $('#cont').onclick = askLoc;
+      }
+    }));
+  };
+
+  const askLoc = () => {
+    const t = ALL[idx], th = theta(t), c = coterm(th), want = zoneOf(c); step = 1;
+    // الساعة تتلاشى ويظهر المستوى؛ الضلع الابتدائي على محور x الموجب
+    $('#hands').setAttribute('opacity', 0); $('#wedge').setAttribute('d', ''); $('#face').setAttribute('opacity', 0);
+    $('#plane').setAttribute('opacity', 1); $('#sides').setAttribute('opacity', 1); $('#term').setAttribute('opacity', 0); rot('#slice', 90);
+    $('#rl').textContent = 'الزاوية'; $('#rv').textContent = deg(th);
+    startTimer();
+    card(`أين يقف ضلع الانتهاء للزاوية ${m(deg(th))} في الوضع القياسي؟`, `<p>👆 الضلع الابتدائي (الأزرق) على محور ${m('<i>x</i>')} الموجب. اضغط على المستوى في الأعلى: <b>داخل ربع</b>، أو <b>على أحد المحاور</b>.</p><div id="fb"></div>`);
+    const svg = $('#sv'); svg.classList.add('pick');
+    const els = svg.querySelectorAll('[data-z]');
+    els.forEach((el) => { el.setAttribute('tabindex', '0'); el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); el.onclick(); } }; });
+    $('.bench').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+    els.forEach((el) => (el.onclick = () => {
+      stopTimer(); svg.classList.remove('pick'); els.forEach((x) => { x.onclick = null; x.setAttribute('tabindex', '-1'); });
+      const ok = el.dataset.z === want;
+      svg.querySelector(`[data-z="${want}"]`).classList.add('ok'); if (!ok) el.classList.add('bad');
+      // الشريحة: تدور من الوضع على الساعة (12) إلى محور x الموجب، ثم يُرسم ضلع الانتهاء
+      const tot = -th, rem = tot % 360 === 0 ? 360 : tot % 360;
+      rot('#slice', 0); $('#term').setAttribute('opacity', 1);
+      anim(900, (k) => { $('#wedge').setAttribute('d', wedgeD(rem * k)); rot('#term', rem * k); }, () => {
+        anim(900, (k) => rot('#slice', 90 * k), () => {
+          const p = mp(c, 120);
+          $('#lbt').setAttribute('x', p[0]); $('#lbt').setAttribute('y', p[1] + 5); $('#lbt').textContent = deg(th);
+          $('#lbr').setAttribute('x', p[0] - 48); $('#lbr').setAttribute('y', p[1] - 15); $('#lb').setAttribute('opacity', 1);
+          const zn = ZONES.find((z) => z.id === want).ar;
+          if (ok) { S.ok(); score += 100; hud(); $('#fb').innerHTML = `<div class="fb ok">✓ ضلع الانتهاء ${zn}.</div><button class="go" id="cont">التالي ⟵</button>`; }
+          else { S.bad(); mist.loc++; lose1(); $('#fb').innerHTML = `<div class="fb bad">✗ شاهد الشريحة: بدأت من محور ${m('<i>x</i>')} الموجب ودارت ${m(tot + '°')} مع عقارب الساعة، فوقف ضلع الانتهاء ${zn}${c % 90 === 0 ? ' (زاوية ربعية)' : ''}.</div><button class="go" id="cont">تابع</button>`; if (tools <= 0) return setTimeout(() => end(false), 1500); }
+          $('#cont').onclick = askCot;
+        });
+      });
+    }));
+  };
+
+  const cotOpts = (th) => {
+    const c = coterm(th), set = [c], add = (v) => { v = ((v % 360) + 360) % 360; if (!set.includes(v) && v !== 0) set.push(v); };
+    add(-th % 360); add(c + 180); add(-th); add(c + 90); add(c + 270);
+    const o = set.filter((v) => v > 0).slice(0, 4); for (let i = o.length - 1; i > 0; i--) { const j = (i * 7 + idx) % (i + 1); [o[i], o[j]] = [o[j], o[i]]; }
+    return o;
+  };
+  const askCot = () => {
+    const t = ALL[idx], th = theta(t), c = coterm(th), k = Math.round((c - th) / 360); step = 2; startTimer();
+    card(`ما أصغر زاوية موجبة تشترك مع ${m(deg(th))} في ضلع الانتهاء؟`, `<p style="font-size:14px;color:#6d5d4b">تلميح: أضف ${m('360°')} (دورة كاملة) حتى تصبح الزاوية موجبة.</p><div class="opts">${cotOpts(th).map((v) => `<button class="opt" data-v="${v}">${m(v + '°')}</button>`).join('')}</div><div id="fb"></div>`);
+    g.querySelectorAll('.opt').forEach((b) => (b.onclick = () => {
+      stopTimer(); g.querySelectorAll('.opt').forEach((x) => (x.disabled = true));
+      g.querySelector(`.opt[data-v="${c}"]`).classList.add('ok');
+      const v = +b.dataset.v, why = m(`${deg(th)} + ${k > 1 ? k + '(360°)' : '360°'} = ${c}°`);
+      const draw = () => { const a = mp(0, 70), e = mp(c, 70); $('#cot').setAttribute('d', `M${P(a)} A70 70 0 ${c > 180 ? 1 : 0} 0 ${P(e)}`); };
+      draw();
+      if (v === c) { S.bell(); score += 100 + Math.round(left * 4); res[idx] = 1; hud(); $('#fb').innerHTML = `<div class="fb ok">🕰️ أُصلحت الساعة! ${why} (القوس السماوي عكس عقارب الساعة).</div><button class="go" id="cont">الساعة التالية ⟵</button>`; }
+      else {
+        S.bad(); b.classList.add('bad'); mist.cot++; res[idx] = 0; lose1();
+        const tip = v === (-th) % 360 || v === -th ? 'هذه قيمة الدوران بلا إشارة؛ الزاوية الموجبة المشتركة تنتج بإضافة دورة، لا بحذف الإشارة.' : v === (c + 180) % 360 ? 'هذه في الاتجاه المعاكس تمامًا (فرق نصف دورة).' : 'أضف دورات كاملة فقط، فالدورة لا تغيّر ضلع الانتهاء.';
+        $('#fb').innerHTML = `<div class="fb bad">✗ ${tip}<br>الصحيح: ${why}</div><button class="go" id="cont">تابع</button>`;
+        if (tools <= 0) return setTimeout(() => end(false), 1500);
+      }
+      $('#cont').onclick = () => { idx++; next(); };
+    }));
+  };
+
+  const timeout = () => {
+    S.bad(); lose1(); mist[['ang', 'loc', 'cot'][step]]++;
+    $('#sv').classList.remove('pick');
+    g.querySelectorAll('.opt').forEach((x) => (x.disabled = true));
+    const fb = $('#fb'); if (fb) fb.innerHTML = `<div class="fb bad">⏰ انتهى الوقت! خسرت مفكًا.</div><button class="go" id="cont">تابع</button>`;
+    if (tools <= 0) return setTimeout(() => end(false), 1200);
+    $('#cont').onclick = () => { if (step === 0) askLoc(); else if (step === 1) askCot(); else { res[idx] = 0; idx++; next(); } };
+  };
+
+  const end = (won) => {
+    stopTimer(); hud(); $('#sv').classList.remove('pick');
+    const st = won ? Math.max(1, tools) : 0;
+    const rec = getRec(), isRec = score > rec; if (isRec) setRec(score);
+    won ? S.win() : S.lose();
+    const tips = [];
+    if (mist.sgn) tips.push(`<tr><td>➖ الإشارة</td><td>${m(mist.sgn)}</td><td>العقارب تدور مع عقارب الساعة ⇐ الزاوية سالبة.</td></tr>`);
+    if (mist.ang) tips.push(`<tr><td>📐 مقدار الزاوية</td><td>${m(mist.ang)}</td><td>الدقائق × ${m('6°')}، والساعات × ${m('30°')}.</td></tr>`);
+    if (mist.loc) tips.push(`<tr><td>📍 ضلع الانتهاء</td><td>${m(mist.loc)}</td><td>ابدأ من محور ${m('<i>x</i>')} الموجب ودُر مع عقارب الساعة.</td></tr>`);
+    if (mist.cot) tips.push(`<tr><td>🔁 الزاوية الموجبة</td><td>${m(mist.cot)}</td><td>أضف ${m('360°')} حتى تصبح موجبة.</td></tr>`);
+    g.innerHTML = `<div class="card" style="text-align:center"><h1>${won ? '🏆 أنت معلّم الساعات!' : '🔧 نفدت المفكات'}</h1>
+      <div class="stars">${[0, 1, 2].map((i) => `<span class="${i < st ? '' : 'off'}">⭐</span>`).join('')}</div>
+      <p>النقاط: <b class="m">${score}</b> ${isRec ? '· 🎉 رقم قياسي جديد!' : rec ? `· أفضل نتيجة: <b class="m">${rec}</b>` : ''}</p>
+      ${won ? '' : '<p>لا بأس! راجع الأخطاء ثم حاول مرة أخرى.</p>'}
+      ${tips.length ? `<table class="tbl" style="text-align:right"><tr><td><b>نوع الخطأ</b></td><td><b>العدد</b></td><td><b>تذكّر</b></td></tr>${tips.join('')}</table>` : '<p>✨ بلا أي خطأ في الفهم!</p>'}
+      <div class="fb ok" style="text-align:right">📌 سؤال الفيديو: ${m('20 × 6° = 120°')} مع عقارب الساعة ⇐ ${m('−120°')} ⇐ أصغر زاوية موجبة: ${m('−120° + 360° = 240°')}.</div>
+      <button class="go" id="again">العب مرة أخرى 🔁</button></div>`;
+    $('#again').onclick = intro;
+  };
+
+  intro();
+})();
+</script>
+</body>
+</html>
