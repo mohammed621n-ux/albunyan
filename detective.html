@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة المحقق</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;800;900&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&family=Orbitron:wght@700;900&display=swap">
+<style>
+  :root { --f-ar: "Cairo", "Segoe UI", Tahoma, sans-serif; --f-m: "STIX Two Text", "Cambria Math", "Times New Roman", serif; --f-led: "Orbitron", "Cairo", monospace;
+    --orange: #f07a2a; --gold: #ffc247; --good: #22c55e; --good-soft: #dcfce7; --bad: #ef4444; --bad-soft: #fee2e2; --paper: #fffdf6; --ink: #1b2742; --muted: #5d6b84; --muted2: #8a93a6;
+    --bgc: #160f0a; --bg: radial-gradient(ellipse at 50% -10%, #3a2a1c, #160f0a 70%); --txt: #fff; --hud: #2a1d12; --stage: #4a3322; --accent: #ffb74d; }
+
+  * { box-sizing: border-box; }
+  html, body { overflow-x: hidden; }
+  html { background: var(--bgc); }
+  body { margin: 0; font-family: var(--f-ar); color: var(--txt); direction: rtl; background: var(--bg); background-attachment: fixed;
+    padding: 14px max(14px, env(safe-area-inset-right, 0px)) 40px max(14px, env(safe-area-inset-left, 0px)); }
+  .wrap { max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .m { font-family: var(--f-m); direction: ltr; unicode-bidi: isolate; white-space: nowrap; font-size: 1.08em; }
+  .m i { font-style: italic; }
+  header { display: flex; align-items: center; gap: 10px; }
+  header img { width: 46px; height: 46px; border-radius: 50%; border: 2px solid var(--orange); }
+  .who b { display: block; font-size: 16px; font-weight: 900; } .who span { font-size: 12px; color: var(--accent); font-weight: 800; }
+  #sound { margin-inline-start: auto; font: inherit; font-size: 13px; color: inherit; background: #ffffff22; border: 1px solid #8884; border-radius: 20px; padding: 4px 12px; cursor: pointer; }
+  .hud { display: flex; align-items: center; gap: 10px; background: var(--hud); color: #fff; border-radius: 14px; padding: 8px 12px; flex-wrap: wrap; }
+  .lives { font-size: 20px; letter-spacing: 2px; } .lives .off { filter: grayscale(1); opacity: 0.25; }
+  .score { font-family: var(--f-led); color: var(--gold); font-size: 16px; direction: ltr; }
+  .ms { display: flex; gap: 5px; margin-inline-start: auto; flex-wrap: wrap; }
+  .mc { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 900; background: #ffffff1c; color: #dde; border: 2px solid transparent; }
+  .mc.now { border-color: var(--gold); color: #fff; } .mc.done { background: var(--good); color: #fff; } .mc.lost { background: var(--bad); color: #fff; }
+  .timer { height: 8px; border-radius: 6px; background: #0002; overflow: hidden; }
+  .timer i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, var(--bad), var(--gold), var(--good)); transform-origin: right; }
+  .stage { position: relative; background: var(--stage); border-radius: 22px; padding: 10px; box-shadow: 0 8px 0 #0003; }
+  .stage svg { width: 100%; max-width: 560px; display: block; margin: 0 auto; touch-action: manipulation; }
+  .brow { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+  .tag { flex: 1; background: var(--paper); color: var(--ink); border-radius: 14px; padding: 6px 12px; text-align: center; font-weight: 800; font-size: 16px; line-height: 1.6; }
+  .tag small { display: block; font-size: 11px; color: var(--muted); }
+  .pick [data-z] { cursor: pointer; }
+  .card { background: var(--paper); color: var(--ink); border-radius: 18px; padding: 14px; display: flex; flex-direction: column; gap: 10px; animation: up 0.3s ease; box-shadow: 0 6px 18px #0002; }
+  @keyframes up { from { opacity: 0; transform: translateY(14px); } }
+  .card h2 { margin: 0; font-size: 19px; font-weight: 900; line-height: 1.6; } .card p { margin: 0; line-height: 1.85; font-size: 15.5px; }
+  .card h1 { margin: 0; font-size: 28px; font-weight: 900; color: var(--accent); }
+  .steps { display: flex; gap: 6px; flex-wrap: wrap; } .st { flex: 1; min-width: 70px; text-align: center; font-size: 12.5px; font-weight: 900; padding: 4px; border-radius: 10px; background: #0000000f; color: var(--muted); }
+  .st.now { background: var(--orange); color: #fff; } .st.ok { background: var(--good); color: #fff; } .st.bad { background: var(--bad); color: #fff; }
+  .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .opts.one { grid-template-columns: 1fr; }
+  .opt { font: inherit; font-size: 17px; font-weight: 900; padding: 13px 8px; border-radius: 14px; border: 2px solid #0002; background: #fff; color: var(--ink); cursor: pointer; transition: transform 0.12s; line-height: 1.6; }
+  .opt:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--orange); }
+  .opt:disabled { cursor: default; opacity: 0.6; } .opt.ok { background: var(--good-soft); border-color: var(--good); opacity: 1; } .opt.bad { background: var(--bad-soft); border-color: var(--bad); opacity: 1; }
+  .opt .m { font-size: 21px; }
+  .fb { border-radius: 12px; padding: 10px 12px; font-size: 15px; line-height: 1.85; font-weight: 700; }
+  .fb.ok { background: var(--good-soft); color: #14532d; } .fb.bad { background: var(--bad-soft); color: #7f1d1d; }
+  .go { font: inherit; font-size: 18px; font-weight: 900; color: #fff; background: var(--orange); border: 0; border-radius: 16px; padding: 12px 20px; cursor: pointer; box-shadow: 0 6px 0 #b9581a; }
+  .go:active { transform: translateY(3px); box-shadow: 0 3px 0 #b9581a; }
+  ol.how { margin: 0; padding-inline-start: 22px; line-height: 1.9; font-size: 15.5px; }
+  .warn { background: #fff4e5; border: 2px dashed var(--orange); border-radius: 12px; padding: 8px 12px; font-weight: 800; font-size: 14.5px; line-height: 1.8; color: #5a3a12; }
+  .rule { background: var(--hud); color: #fff; border-radius: 12px; padding: 8px 12px; font-size: 14.5px; line-height: 1.95; font-weight: 700; }
+  .rule .m { color: var(--gold); }
+  .stars { font-size: 44px; text-align: center; letter-spacing: 6px; } .stars .off { filter: grayscale(1); opacity: 0.25; }
+  .tbl { width: 100%; border-collapse: collapse; font-size: 14.5px; } .tbl td { padding: 6px; border-bottom: 1px solid #0001; }
+  footer { text-align: center; font-size: 12px; color: var(--muted2); padding-top: 6px; }
+  .shake { animation: shk 0.35s 2; } @keyframes shk { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  @media (prefers-reduced-motion: reduce) { .card, .shake { animation: none; } }
+
+
+  .cork { fill: #c8955c; } .note { fill: #fff8d6; } .note2 { fill: #d7f0ff; }
+  .nt { font: 800 15px "Cairo", sans-serif; fill: #3b2a14; direction: rtl; unicode-bidi: plaintext; }
+  .mt { font: 600 21px "STIX Two Text", serif; fill: #1b2742; direction: ltr; unicode-bidi: bidi-override; }
+  .mtb { font: 600 26px "STIX Two Text", serif; fill: #b71c1c; direction: ltr; unicode-bidi: bidi-override; }
+  .stamp { font: 900 30px "Cairo", sans-serif; fill: #c62828; direction: rtl; unicode-bidi: plaintext; }
+  
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img alt="شعار البنيان" src="data:image/jpeg;base64,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">
+    <div class="who"><b>م. محمد شقور</b><span>البنيان في الرياضيات</span></div>
+    <button id="sound" type="button" aria-pressed="true">🔊 الصوت</button>
+  </header>
+  <div class="hud"><span class="lives" id="lives"></span><span class="score" id="score">0</span><div class="ms" id="ms"></div></div>
+  <div class="timer" aria-hidden="true"><i id="tbar"></i></div>
+  <div class="stage"><div class="brow"><div class="tag" id="tag">—</div></div><svg id="sv" viewBox="0 0 560 400" role="img" aria-label="لوحة المحقق"></svg></div>
+  <div id="game" class="wrap" style="gap:12px"></div>
+  <footer>من أسئلة البنيان لرياضيات الحادي عشر · م. محمد شقور</footer>
+</div>
+<script>
+const m = (t) => `<span class="m">${t}</span>`;
+
+const sg = (n) => (n < 0 ? '−' + -n : '' + n);
+const br = (r) => (r === 0 ? 'x' : r > 0 ? `(x − ${r})` : `(x + ${-r})`);
+const lin = (a, b) => {
+  let s = a === 0 ? '' : a === 1 ? 'x' : a === -1 ? '−x' : sg(a) + 'x';
+  if (b !== 0 || !s) s += s ? (b < 0 ? ' − ' + -b : ' + ' + b) : sg(b);
+  return s;
+};
+const co = (r, v) => (r === 1 ? v : r === -1 ? '−' + v : sg(r) + v);
+const eq = (r, v) => `${co(r, '<i>a</i>')} + <i>b</i> = ${sg(v)}`;
+const shuffle = (o, seed) => { for (let i = o.length - 1; i > 0; i--) { const j = (i * 7 + seed * 3) % (i + 1); [o[i], o[j]] = [o[j], o[i]]; } return o; };
+const uniq = (arr, k = (x) => x.h) => { const s = new Set(); return arr.filter((x) => (s.has(k(x)) ? false : s.add(k(x)))); };
+const mk = (c, seed) => {
+  const { r1, v1, r2, v2 } = c, a = (v1 - v2) / (r1 - r2), b = v1 - a * r1;
+  const div = c.big || `${br(r1)}${br(r2)}`;
+  const R = lin(a, b);
+  const RR = (x) => m('<i>R</i>(<i>x</i>) = ' + x);
+  const rOpts = shuffle(uniq([{ v: 'ok', h: RR(R) }, { v: 'sa', h: RR(lin(-a, b)) }, { v: 'sw', h: RR(lin(b, a)) }, { v: 'sb', h: RR(lin(a, -b)) }, { v: 'x2', h: RR(lin(a + 1, b)) }]).slice(0, 4), seed);
+  return {
+    c, a, b, R, div,
+    tag: `<small>القضية</small>ما الباقي عند قسمة ${m('<i>f</i>(<i>x</i>)')} على ${m(div)}؟`,
+    steps: [
+      { label: '① الدليل', q: `الدليل الأول: «عند قسمة ${m('<i>f</i>(<i>x</i>)')} على ${m(br(r1))} يكون الباقي ${m(sg(v1))}». ماذا يعني؟`,
+        opts: shuffle([{ v: 'ok', h: m(`<i>f</i>(${sg(r1)}) = ${sg(v1)}`) }, { v: 'neg', h: m(`<i>f</i>(${sg(-r1)}) = ${sg(v1)}`) }, { v: 'swp', h: m(`<i>f</i>(${sg(v1)}) = ${sg(r1)}`) }, { v: 'zero', h: m(`<i>f</i>(${sg(r1)}) = 0`) }], seed),
+        ok: 'ok', cat: 'sub',
+        wrong: { neg: { cat: 'sub', tip: `نعوّض العدد الذي يجعل القوس صفرًا: ${m(br(r1) + ' = 0')} عندما ${m('<i>x</i> = ' + sg(r1))}، وليس ${m(sg(-r1))}.` },
+                 swp: { cat: 'sub', tip: 'قلبتَ الدليل! الداخل هو العدد الذي يصفّر القوس، والناتج هو الباقي.' },
+                 zero: { cat: 'sub', tip: 'الناتج صفر فقط إذا كان القوس عاملًا. هنا الباقي ' + m(sg(v1)) + '.' } },
+        why: `نظرية الباقي: ${m(`<i>f</i>(${sg(r1)}) = ${sg(v1)}`)}، وبالطريقة نفسها: ${m(`<i>f</i>(${sg(r2)}) = ${sg(v2)}`)}.`,
+        after: async (sv) => { await pin(sv, 1); await pin(sv, 2); } },
+      { label: '② شكل الباقي', q: `ما شكل الباقي عند القسمة على ${m(div)}؟`,
+        opts: shuffle([{ v: 'ok', h: m('<i>ax</i> + <i>b</i>') }, { v: 'k', h: 'عدد ثابت فقط' }, { v: 'q', h: m('<i>ax</i>² + <i>bx</i> + <i>c</i>') }, { v: 'f', h: `لا نعرفه دون معرفة ${m('<i>f</i>')}` }], seed + 1),
+        ok: 'ok', cat: 'form',
+        wrong: { k: { cat: 'form', tip: 'العدد الثابت هو باقي القسمة على قوس واحد من الدرجة الأولى.' }, q: { cat: 'form', tip: 'درجة الباقي أقل من درجة المقسوم عليه، والمقسوم عليه من الدرجة الثانية.' }, f: { cat: 'form', tip: 'لا نحتاج ' + m('<i>f</i>') + ' نفسه! يكفينا شكل الباقي والدليلان.' } },
+        why: `المقسوم عليه من الدرجة الثانية، فالباقي من الدرجة الأولى على الأكثر: ${m('<i>R</i>(<i>x</i>) = <i>ax</i> + <i>b</i>')}.`,
+        after: async (sv) => { sv.querySelector('#susp').textContent = 'R(x) = ax + b'; } },
+      { label: '③ المعادلتان', one: true, q: `نعوّض في ${m('<i>f</i>(<i>x</i>) = ' + div + '·<i>Q</i>(<i>x</i>) + <i>ax</i> + <i>b</i>')}. ما المعادلتان؟`,
+        opts: shuffle([{ v: 'ok', h: m(eq(r1, v1) + ' ، ' + eq(r2, v2)) }, { v: 'ng', h: m(eq(-r1, v1) + ' ، ' + eq(-r2, v2)) }, { v: 'sw', h: m(eq(r1, v2) + ' ، ' + eq(r2, v1)) }, { v: 'vv', h: m(`${co(v1, '<i>a</i>')} + <i>b</i> = ${sg(r1)} ، ${co(v2, '<i>a</i>')} + <i>b</i> = ${sg(r2)}`) }], seed + 2),
+        ok: 'ok', cat: 'sys',
+        wrong: { ng: { cat: 'sub', tip: 'عوّضنا القيمة التي تصفّر كل قوس، بإشارتها كما هي في الدليل.' }, sw: { cat: 'sys', tip: 'كل باقٍ يتبع قوسه: الباقي ' + m(sg(v1)) + ' مع ' + m(sg(r1)) + '.' }, vv: { cat: 'sys', tip: 'المجهولان هما ' + m('<i>a</i>') + ' و' + m('<i>b</i>') + '؛ العدد المعوَّض يضرب ' + m('<i>a</i>') + '، والباقي في الطرف الآخر.' } },
+        why: `الجزء ${m(div + '·<i>Q</i>')} يصبح صفرًا عند ${m(sg(r1))} وعند ${m(sg(r2))}، فيبقى: ${m(eq(r1, v1))} و ${m(eq(r2, v2))}.` },
+      { label: '④ الباقي', q: 'حُلّ المعادلتين. ما الباقي؟', opts: rOpts, ok: 'ok', cat: 'solve',
+        wrong: { sa: { cat: 'solve', tip: 'راجع إشارة ' + m('<i>a</i>') + ': اطرح المعادلتين لتجد ' + m('<i>a</i>') + ' أولًا.' }, sw: { cat: 'solve', tip: 'بدّلتَ ' + m('<i>a</i>') + ' و' + m('<i>b</i>') + ': ' + m('<i>a</i>') + ' معامل ' + m('<i>x</i>') + '.' }, sb: { cat: 'solve', tip: 'عوّض ' + m('<i>a</i>') + ' في إحدى المعادلتين لتجد ' + m('<i>b</i>') + ' بإشارته الصحيحة.' }, x2: { cat: 'solve', tip: 'تحقق: هذا الباقي لا يعطي ' + m(sg(v1)) + ' عند ' + m(sg(r1)) + '.' } },
+        why: `${m(`<i>a</i> = (${sg(v1)} − ${v2 < 0 ? '(' + sg(v2) + ')' : v2}) ÷ (${sg(r1)} − ${r2 < 0 ? '(' + sg(r2) + ')' : r2}) = ${sg(a)}`)}، ${m(`<i>b</i> = ${sg(b)}`)} ⇐ ${m('<i>R</i>(<i>x</i>) = ' + R)}. تحقق: ${m(`<i>R</i>(${sg(r1)}) = ${sg(v1)}`)} ✓${a === 0 ? '<br>لاحظ: ' + m('<i>a</i> = 0') + '، فالباقي عدد ثابت هذه المرة، لكن شكله العام بقي ' + m('<i>ax</i> + <i>b</i>') + '.' : ''}`,
+        after: async (sv, t, ok) => { sv.querySelector('#susp').textContent = 'R(x) = ' + t.R; if (ok) { sv.querySelector('#stamp').setAttribute('opacity', 1); SND.beep(220, 0.25, 'square', 0.1); } } },
+    ],
+  };
+};
+const pin = async (sv, n) => { const e = sv.querySelector('#ev' + n); e.setAttribute('opacity', 1); SND.beep(880, 0.08, 'triangle', 0.12); await wait(250); };
+const GAME = {
+  id: 'detective', title: 'لوحة المحقق', icon: '🕵️', life: '🔍', lifeName: 'عدسات', time: 45,
+  intro: `<p>كثير الحدود ${m('<i>f</i>(<i>x</i>)')} مجهول تمامًا! لكن عندك أدلة: باقي قسمته على قوسين. مهمتك كمحقق: أن تكشف <b>الباقي</b> عند قسمته على حاصل ضربهما، دون أن تعرف ${m('<i>f</i>')} أبدًا.</p>`,
+  rule: `الباقي عند القسمة على ${m('(<i>x</i> − <i>c</i>)')} هو ${m('<i>f</i>(<i>c</i>)')} · القسمة على قوسين ⇐ الباقي ${m('<i>ax</i> + <i>b</i>')}`,
+  how: ['اقرأ الدليل وحوّله إلى معلومة: ' + m('<i>f</i>(<i>c</i>) = الباقي') + '.', 'حدّد شكل الباقي عند القسمة على قوسين.', 'اختر المعادلتين الصحيحتين.', 'اكشف الباقي ' + m('<i>R</i>(<i>x</i>)') + ' وأغلق القضية!'],
+  startLabel: 'افتح الملف', nextLabel: 'القضية التالية',
+  stages: [
+    { name: 'محقق متدرّب', msg: 'قضايا أقواسها بسيطة.', missions: [{ r1: 1, v1: 3, r2: 2, v2: 5 }, { r1: -1, v1: -2, r2: 3, v2: 6 }].map(mk) },
+    { name: 'محقق', msg: 'منها قضية الفيديو نفسها!', missions: [{ r1: 3, v1: 4, r2: -2, v2: 9 }, { r1: 4, v1: 1, r2: -1, v2: -9 }].map((c, i) => mk(c, i + 2)) },
+    { name: 'كبير المحققين', msg: 'قضايا فيها مفاجآت: انتبه جيدًا.', missions: [{ r1: 2, v1: 5, r2: -2, v2: 5 }, { r1: 3, v1: 6, r2: -3, v2: 0, big: '(x² − 9)' }].map((c, i) => mk(c, i + 4)) },
+  ],
+  draw: (sv, t) => {
+    const { r1, v1, r2, v2 } = t.c;
+    sv.innerHTML = `<rect class="cork" x="0" y="0" width="560" height="400" rx="16"/>
+      <path d="M140 120 L280 70 L420 120" stroke="#c62828" stroke-width="3" fill="none"/><path d="M140 120 L280 300 L420 120" stroke="#c62828" stroke-width="2" stroke-dasharray="6 5" fill="none"/>
+      <g><rect x="200" y="22" width="160" height="78" rx="8" fill="#1b2742"/><text class="mtb" x="280" y="62" text-anchor="middle" style="fill:#ffc247">f(x) = ?</text><text class="nt" x="280" y="88" text-anchor="middle" style="fill:#cde">المشتبه به مجهول</text><circle cx="280" cy="24" r="7" fill="#e53935"/></g>
+      <g transform="rotate(-4 140 120)"><rect class="note" x="40" y="104" width="200" height="86" rx="6"/><circle cx="140" cy="108" r="7" fill="#e53935"/><text class="nt" x="140" y="132" text-anchor="middle">الدليل ١: القسمة على</text><text class="mt" x="140" y="160" text-anchor="middle">${br(r1)} → ${sg(v1)}</text><text class="nt" x="140" y="182" text-anchor="middle">(الباقي)</text></g>
+      <g transform="rotate(4 420 120)"><rect class="note" x="320" y="104" width="200" height="86" rx="6"/><circle cx="420" cy="108" r="7" fill="#e53935"/><text class="nt" x="420" y="132" text-anchor="middle">الدليل ٢: القسمة على</text><text class="mt" x="420" y="160" text-anchor="middle">${br(r2)} → ${sg(v2)}</text><text class="nt" x="420" y="182" text-anchor="middle">(الباقي)</text></g>
+      <g id="ev1" opacity="0"><rect class="note2" x="60" y="206" width="160" height="44" rx="6"/><text class="mt" x="140" y="236" text-anchor="middle">f(${sg(r1)}) = ${sg(v1)}</text></g>
+      <g id="ev2" opacity="0"><rect class="note2" x="340" y="206" width="160" height="44" rx="6"/><text class="mt" x="420" y="236" text-anchor="middle">f(${sg(r2)}) = ${sg(v2)}</text></g>
+      <rect x="150" y="258" width="260" height="84" rx="10" fill="#fff"/><text class="nt" x="280" y="278" text-anchor="middle">الباقي عند القسمة على</text><text class="mt" x="280" y="302" text-anchor="middle" style="font-size:18px">${t.div}</text><text class="mt" x="280" y="332" text-anchor="middle" id="susp">R(x) = ?</text>
+      <g id="stamp" opacity="0"><rect x="170" y="346" width="220" height="48" rx="8" fill="none" stroke="#c62828" stroke-width="4"/><text class="stamp" x="280" y="381" text-anchor="middle">أُغلقت القضية ✓</text></g>`;
+  },
+  idle: (sv) => { sv.innerHTML = `<rect class="cork" x="0" y="0" width="560" height="400" rx="16"/><text x="280" y="210" text-anchor="middle" style="font-size:90px">🕵️</text><text class="nt" x="280" y="280" text-anchor="middle" style="font-size:22px">لوحة الأدلة جاهزة…</text>`; },
+  tagIdle: 'قضايا الباقي',
+  cats: {
+    sub: ['🔢 التعويض', 'عوّض العدد الذي يجعل القوس صفرًا، بإشارته الصحيحة.'],
+    form: ['📐 شكل الباقي', 'القسمة على قوسين (درجة ثانية) ⇐ الباقي ' + m('<i>ax</i> + <i>b</i>') + '.'],
+    sys: ['🧩 المعادلتان', 'كل دليل يعطي معادلة: ' + m('<i>ca</i> + <i>b</i> = الباقي') + '.'],
+    solve: ['✍️ الحل', 'اطرح المعادلتين لتجد ' + m('<i>a</i>') + '، ثم عوّض لتجد ' + m('<i>b</i>') + ' وتحقق.'],
+  },
+  summary: `قضية الفيديو: ${m('<i>f</i>(3) = 4')} و ${m('<i>f</i>(−2) = 9')} ⇐ ${m('3<i>a</i> + <i>b</i> = 4')} و ${m('−2<i>a</i> + <i>b</i> = 9')} ⇐ ${m('<i>R</i>(<i>x</i>) = −<i>x</i> + 7')}.`,
+  winTitle: '🏆 كبير المحققين!', loseTitle: '🔍 نفدت العدسات',
+};
+
+
+(() => {
+  const $ = (s, r = document) => r.querySelector(s);
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.REDUCE = reduce;
+  let store = null; try { store = window.localStorage; } catch (e) {}
+  const KEY = 'albunyan-' + GAME.id + '-rec';
+  const getRec = () => { try { return +(store && store.getItem(KEY)) || 0; } catch (e) { return 0; } };
+  const setRec = (v) => { try { store && store.setItem(KEY, String(v)); } catch (e) {} };
+  let ac = null, soundOn = true;
+  const beep = (f, d = 0.12, type = 'sine', v = 0.15, at = 0) => {
+    if (!soundOn) return;
+    try {
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      const o = ac.createOscillator(), g = ac.createGain(), t = ac.currentTime + at;
+      o.type = type; o.frequency.setValueAtTime(f, t); g.gain.setValueAtTime(v, t); g.gain.exponentialRampToValueAtTime(0.001, t + d);
+      o.connect(g).connect(ac.destination); o.start(t); o.stop(t + d + 0.02);
+    } catch (e) {}
+  };
+  const S = window.SND = {
+    tick: () => beep(1700, 0.03, 'square', 0.04),
+    ok: () => { beep(660, 0.1, 'triangle'); beep(990, 0.16, 'triangle', 0.15, 0.09); },
+    bad: () => { beep(180, 0.3, 'sawtooth', 0.12); beep(140, 0.3, 'sawtooth', 0.1, 0.12); },
+    start: () => { beep(523, 0.12, 'triangle'); beep(784, 0.2, 'triangle', 0.14, 0.12); },
+    done: () => [659, 784, 988].forEach((f, i) => beep(f, 0.18, 'triangle', 0.14, i * 0.09)),
+    win: () => [523, 659, 784, 1046].forEach((f, i) => beep(f, 0.22, 'triangle', 0.15, i * 0.12)),
+    lose: () => [392, 330, 262, 196].forEach((f, i) => beep(f, 0.28, 'sawtooth', 0.09, i * 0.16)),
+    beep,
+  };
+  $('#sound').onclick = (e) => { soundOn = !soundOn; e.currentTarget.textContent = soundOn ? '🔊 الصوت' : '🔇 الصوت'; e.currentTarget.setAttribute('aria-pressed', soundOn); };
+  window.anim = (dur, fn) => new Promise((res) => {
+    if (reduce) { fn(1); return res(); }
+    const t0 = performance.now();
+    const step = (now) => { const k = Math.min(1, (now - t0) / dur); fn(k); if (k < 1) requestAnimationFrame(step); else res(); };
+    requestAnimationFrame(step);
+  });
+  window.wait = (ms) => new Promise((r) => setTimeout(r, reduce ? 0 : ms));
+
+  const ALL = GAME.stages.flatMap((s, i) => s.missions.map((mm) => ({ ...mm, st: i })));
+  const TIME = GAME.time || 40, LIVES = 3;
+  let idx = 0, lives = LIVES, score = 0, sidx = 0, timer = null, left = TIME, res = [], miss = {}, okAll = true, busy = false;
+  const g = $('#game');
+  const hud = () => {
+    $('#lives').innerHTML = [0, 1, 2].map((i) => `<span class="${i < lives ? '' : 'off'}">${GAME.life}</span>`).join('');
+    $('#score').textContent = score;
+    $('#ms').innerHTML = ALL.map((_, i) => `<span class="mc ${res[i] === 1 ? 'done' : res[i] === 0 ? 'lost' : i === idx ? 'now' : ''}">${i + 1}</span>`).join('');
+  };
+  const stopTimer = () => { clearInterval(timer); timer = null; };
+  const startTimer = () => {
+    stopTimer(); left = TIME; $('#tbar').style.transform = 'scaleX(1)';
+    timer = setInterval(() => {
+      left -= 0.1; $('#tbar').style.transform = `scaleX(${Math.max(0, left / TIME)})`;
+      if (left <= 8 && Math.abs(left - Math.round(left)) < 0.05) S.tick();
+      if (left <= 0) { stopTimer(); answer(null); }
+    }, 100);
+  };
+  const lose1 = () => { lives--; hud(); const b = $('.stage'); b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); };
+  const cur = () => ALL[idx];
+  window.__step = () => cur() && cur().steps[sidx];
+  const stepsBar = () => `<div class="steps">${cur().steps.map((s, i) => `<span class="st ${i < sidx ? (s._ok ? 'ok' : 'bad') : i === sidx ? 'now' : ''}">${s.label}</span>`).join('')}</div>`;
+
+  const intro = () => {
+    stopTimer(); idx = 0; lives = LIVES; score = 0; res = []; miss = {};
+    $('#tag').innerHTML = GAME.tagIdle || '—'; GAME.idle && GAME.idle($('#sv')); hud();
+    const rec = getRec();
+    g.innerHTML = `<div class="card"><h1>${GAME.icon} ${GAME.title}</h1>${GAME.intro}
+      ${GAME.rule ? `<div class="rule">🔑 ${GAME.rule}</div>` : ''}
+      <h2>كيف تلعب؟</h2><ol class="how">${GAME.how.map((h) => `<li>${h}</li>`).join('')}</ol>
+      <div class="warn">⚠️ يمكنك أن تخسر! معك ${m('3')} ${GAME.lifeName} ${GAME.life}. كل إجابة خاطئة أو انتهاء الوقت (${m(TIME + ' ث')}) يكلّفك واحدة، وإذا نفدت انتهت اللعبة.</div>
+      <p>${ALL.length} مهام في ${GAME.stages.length} مراحل: ${GAME.stages.map((s) => `<b>${s.name}</b>`).join(' ← ')}. ${rec ? `أفضل نتيجة لك: <b class="m">${rec}</b>` : ''}</p>
+      <button class="go" id="start">${GAME.startLabel || 'ابدأ'} 🚀</button></div>`;
+    $('#start').onclick = () => { S.start(); next(); };
+  };
+  const next = () => {
+    if (idx >= ALL.length) return end(true);
+    sidx = 0; okAll = true; hud();
+    const t = cur(); t.steps.forEach((s) => (s._ok = undefined));
+    $('#tag').innerHTML = t.tag; GAME.draw($('#sv'), t);
+    if (idx === 0 || ALL[idx - 1].st !== t.st) {
+      const s = GAME.stages[t.st];
+      g.innerHTML = `<div class="card" style="text-align:center"><h2>المرحلة ${t.st + 1}: ${s.name}</h2><p>${s.msg}</p><button class="go" id="gost">جاهز ✔</button></div>`;
+      $('#gost').onclick = () => ask();
+    } else ask();
+  };
+  const ask = () => {
+    const t = cur(), s = t.steps[sidx]; busy = false;
+    if (s.show) s.show($('#sv'), t);
+    let body = '';
+    if (s.opts) body = `<div class="opts ${s.one ? 'one' : ''}">${s.opts.map((o) => `<button class="opt" data-v="${o.v}">${o.h}</button>`).join('')}</div>`;
+    else body = `<p>👆 ${s.tapHint || 'اضغط على الرسم في الأعلى.'}</p>`;
+    g.innerHTML = `<div class="card">${stepsBar()}<h2>${s.q}</h2>${s.hint ? `<p style="font-size:14px;color:var(--muted)">${s.hint}</p>` : ''}${body}<div id="fb"></div></div>`;
+    if (s.opts) g.querySelectorAll('.opt').forEach((b) => (b.onclick = () => answer(b.dataset.v, b)));
+    else {
+      const sv = $('#sv'); sv.classList.add('pick');
+      sv.querySelectorAll('[data-z]').forEach((el) => {
+        el.setAttribute('tabindex', '0'); el.setAttribute('role', 'button');
+        el.onclick = () => answer(el.dataset.z, el);
+        el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); answer(el.dataset.z, el); } };
+      });
+      $('.stage').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
+    }
+    startTimer();
+  };
+  const answer = async (v, el) => {
+    if (busy) return; busy = true; stopTimer();
+    const t = cur(), s = t.steps[sidx], ok = v != null && String(v) === String(s.ok);
+    g.querySelectorAll('.opt').forEach((x) => (x.disabled = true));
+    const sv = $('#sv'); sv.classList.remove('pick');
+    sv.querySelectorAll('[data-z]').forEach((x) => { x.onclick = null; x.onkeydown = null; x.setAttribute('tabindex', '-1'); });
+    if (s.opts) { const r = g.querySelector(`.opt[data-v="${CSS.escape(String(s.ok))}"]`); r && r.classList.add('ok'); if (!ok && el) el.classList.add('bad'); }
+    else { const r = sv.querySelector(`[data-z="${CSS.escape(String(s.ok))}"]`); r && r.classList.add('zok'); if (!ok && el) el.classList.add('zbad'); }
+    s._ok = ok;
+    let tip = '';
+    if (!ok) {
+      const w = (s.wrong && v != null && s.wrong[v]) || null;
+      const cat = (w && w.cat) || s.cat; miss[cat] = (miss[cat] || 0) + 1; okAll = false;
+      tip = v == null ? '⏰ انتهى الوقت!' : '✗ ' + ((w && w.tip) || s.tip || 'ليست هذه.');
+      S.bad(); lose1();
+    } else { S.ok(); score += 100; if (sidx === t.steps.length - 1) score += Math.round(left * 4); hud(); }
+    if (s.after) await s.after($('#sv'), t, ok, v);
+    const last = sidx === t.steps.length - 1;
+    if (last) { res[idx] = okAll ? 1 : 0; hud(); if (okAll) S.done(); }
+    $('#fb').innerHTML = `<div class="fb ${ok ? 'ok' : 'bad'}">${ok ? '✓ ' : tip + '<br>'}${s.why || ''}</div>${lives <= 0 ? '' : `<button class="go" id="cont">${last ? (idx === ALL.length - 1 ? 'النتيجة 🏁' : (GAME.nextLabel || 'المهمة التالية') + ' ⟵') : 'تابع ⟵'}</button>`}`;
+    if (lives <= 0) return setTimeout(() => end(false), 1800);
+    $('#cont').onclick = () => { if (last) { idx++; next(); } else { sidx++; ask(); } };
+    $('#fb').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'nearest' });
+  };
+  const end = (won) => {
+    stopTimer(); hud();
+    const st = won ? Math.max(1, lives) : 0, rec = getRec(), isRec = score > rec; if (isRec) setRec(score);
+    won ? S.win() : S.lose();
+    const rows = Object.entries(miss).map(([k, n]) => `<tr><td>${GAME.cats[k][0]}</td><td>${m(n)}</td><td>${GAME.cats[k][1]}</td></tr>`);
+    g.innerHTML = `<div class="card" style="text-align:center"><h1>${won ? GAME.winTitle : GAME.loseTitle}</h1>
+      <div class="stars">${[0, 1, 2].map((i) => `<span class="${i < st ? '' : 'off'}">⭐</span>`).join('')}</div>
+      <p>النقاط: <b class="m">${score}</b> ${isRec ? '· 🎉 رقم قياسي جديد!' : rec ? `· أفضل نتيجة: <b class="m">${rec}</b>` : ''}</p>
+      ${won ? '' : '<p>لا بأس! راجع الأخطاء في الأسفل ثم حاول مرة أخرى.</p>'}
+      ${rows.length ? `<table class="tbl" style="text-align:right"><tr><td><b>نوع الخطأ</b></td><td><b>العدد</b></td><td><b>تذكّر</b></td></tr>${rows.join('')}</table>` : '<p>✨ بلا أي خطأ في الفهم!</p>'}
+      <div class="fb ok" style="text-align:right">📌 ${GAME.summary}</div>
+      <button class="go" id="again">العب مرة أخرى 🔁</button></div>`;
+    $('#again').onclick = intro;
+  };
+  intro();
+})();
+
+</script>
+</body>
+</html>
